@@ -44,6 +44,7 @@ for email_id_bytes in message_ids[0].split():
     
     save_email(email_id, sender, subject, body)
     gmail.mark_as_read(email_id_bytes)
-    print(f"Saved and marked {email_id} as read\n")
+    gmail.move_to_label(email_id_bytes, 'EmailAgent/Processed')
+    print(f"Saved, marked as read, and moved to label\n")
 
 gmail.disconnect()
