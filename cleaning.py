@@ -76,3 +76,43 @@ def clean_email_body(email_message):
     body_text = re.sub(r'\n{3,}', '\n\n', body_text)    # More than 2 newlines down to 2
     
     return body_text.strip()
+
+def save_attachments(email_message, email_id, save_folder="attachments"):
+    """Save all attachments from an email to disk"""
+    import os
+    
+    saved_files = []
+    
+    if not email_message.is_multipart():
+        return saved_files
+    
+    for part in email_message.walk():
+        content_disposition = str(part.get("Content-Disposition"))
+        
+        if "attachment" not in content_disposition:
+            continue
+        
+        filename = part.get_filename()
+        if filename:
+            # Decode filename if encoded
+            from email.header import decode_header
+            decoded_filename = decode_header(filename)[0][0]
+            if isinstance(decoded_filename, bytes):
+                filename = decoded_filename.decode('utf-8', errors='replace')
+            else:
+                filename = decoded_filename
+            
+            # Clean filename 
+            import re
+            filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+            
+            # Full path
+            filepath = os.path.join(save_folder, f"{email_id}_{filename}")
+            
+            # Save the file
+            with open(filepath, 'wb') as f:
+                f.write(part.get_payload(decode=True))
+            
+            saved_files.append(filepath)
+    
+    return saved_files
