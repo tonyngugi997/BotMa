@@ -12,14 +12,17 @@ IMAP_SERVER = os.getenv('IMAP_SERVER')
 print(" Attempting to connect...")
 mail = imaplib.IMAP4_SSL(IMAP_SERVER)
 
-print("Connected! Attempting login...")
+print("Attempting login...")
 mail.login(EMAIL, APP_PASSWORD)
+print("Login successful!")
 
 mail.select('inbox')
 
 status, message_ids = mail.search(None, 'UNSEEN')
 print(f"Unread count: {len(message_ids[0].split())}")
 
-print("Login successful!")
+first_id = message_ids[0].split()[0]
+status, message_data = mail.fetch(first_id, '(RFC822)')
+print(f"email_id: {first_id.decode()} - Status: {status}")
 
 mail.logout()
