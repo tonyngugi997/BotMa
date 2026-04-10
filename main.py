@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import email
 
 from cleaning import decode_subject, clean_email_body
-from storage import init_database
+from storage import init_database, save_email
 
 
 print("Loading environment variables...")
@@ -37,6 +37,7 @@ email_message = email.message_from_bytes(raw_email_string.encode('utf-8'))
 subject = email_message['Subject']
 sender = email_message['From']
 print(f"Subject: {decode_subject(subject)}")
+save_email(first_id.decode())
 print(f"Sender: {sender}")
 body = clean_email_body(email_message)
 print(f"Body preview: {body[:200]}")
