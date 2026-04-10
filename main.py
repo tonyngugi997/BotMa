@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 import email
 
-from cleaning import decode_subject
+from cleaning import decode_subject, clean_email_body
 
 print("Loading environment variables...")
 load_dotenv()
@@ -34,5 +34,7 @@ subject = email_message['Subject']
 sender = email_message['From']
 print(f"Subject: {decode_subject(subject)}")
 print(f"Sender: {sender}")
+body = clean_email_body(email_message)
+print(f"Body preview: {body[:200]}")
 
 mail.logout()
