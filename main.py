@@ -4,9 +4,13 @@ from dotenv import load_dotenv
 import email
 
 from cleaning import decode_subject, clean_email_body
+from storage import init_database
+
 
 print("Loading environment variables...")
 load_dotenv()
+init_database()
+
 
 EMAIL = os.getenv('EMAIL')
 APP_PASSWORD = os.getenv('APP_PASSWORD')
