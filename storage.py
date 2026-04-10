@@ -20,3 +20,11 @@ def save_email(email_id):
     cursor.execute('INSERT INTO processed_emails (email_id) VALUES (?)', (email_id,))
     conn.commit()
     conn.close()
+
+def is_email_processed(email_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute('SELECT 1 FROM processed_emails WHERE email_id = ?', (email_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result is not None
