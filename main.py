@@ -3,9 +3,10 @@ import os
 from dotenv import load_dotenv
 import email
 
-from cleaning import decode_subject, clean_email_body
+from cleaning import decode_subject, clean_email_body, save_attachments
 from storage import init_database, save_email, is_email_processed
 from gmail_client import GmailClient
+from categorizer import categorize
 
 load_dotenv()
 init_database()
@@ -37,14 +38,19 @@ for email_id_bytes in message_ids[0].split():
     subject = email_message['Subject']
     sender = email_message['From']
     body = clean_email_body(email_message)
+    category = categorize(subject, sender, body)
+    saved_files = save_attachments(email_message, email_id)
+    if saved_files:
+        print(f"Saved {len(saved_files)} attachment(s): {saved_files}")
     
     print(f"Subject: {decode_subject(subject)}")
     print(f"Sender: {sender}")
+    print(f"Category: {category}")
     print(f"Body preview: {body[:200]}")
     
     save_email(email_id, sender, subject, body)
     gmail.mark_as_read(email_id_bytes)
-    gmail.move_to_label(email_id_bytes, 'EmailAgent/Processed')
-    print(f"Saved, marked as read, and moved to label\n")
+    gmail.move_to_label(email_id_bytes, f'EmailAgent/{category}')
+    print(f"Saved, marked, and moved to {category}\n")
 
 gmail.disconnect()
