@@ -9,6 +9,8 @@ from gmail_client import GmailClient
 from categorizer import categorize
 
 from logger import get_logger  
+from priority_scorer import calculate_priority_score
+
 
 logger = get_logger(__name__)
 
