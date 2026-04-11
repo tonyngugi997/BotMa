@@ -72,9 +72,17 @@ for email_id_bytes in message_ids[0].split():
     sender = email_message['From']
     body = clean_email_body(email_message)
     category = categorize(subject, sender, body)
+   
     saved_files = save_attachments(email_message, email_id, sender=sender)
     if saved_files:
         logger.info(f"Saved {len(saved_files)} attachment(s): {saved_files}")
+    
+    # CALCULATE PRIORITY SCORE 
+    has_attachments = len(saved_files) > 0
+    priority_score = calculate_priority_score(subject, sender, body, has_attachments)
+    logger.info(f"Priority Score: {priority_score}/100")
+    
+    logger.info(f"Subject: {decode_subject(subject)}")
     
     logger.info(f"Subject: {decode_subject(subject)}")
     logger.info(f"Sender: {sender}")
