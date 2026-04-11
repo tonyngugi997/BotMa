@@ -59,5 +59,31 @@ def calculate_priority_score(subject, sender, body, has_attachments=False):
     if has_attachments:
         score += 10
         logger.debug(f"  +10: Email has attachments")
+
+
+    promotion_keywords = [
+                            'unsubscribe', 'promo', 'sale', 'deal',
+                              'discount', 'coupon', 'newsletter',
+                              'offer', 'promotion', 'advertisement', 'advertising',
+                              'marketing', 'campaign', 'special offer',
+                              'limited time', 'exclusive', 'clearance', 'bargain',
+                              'free trial', 'gift', 'bonus', 'reward',
+                              'loyalty program', 'membership', 'vip', 'early access',
+                              'flash sale', 'daily deal', 'weekly deal', 'seasonal sale',
+                              'holiday sale', 'black friday', 'cyber monday', 'boxing day',
+                                'new arrival', 'product launch', 'event invitation',
+                                'webinar', 'workshop', 'conference', 'trade show',
+                                'giveaway', 'contest', 'sweepstakes', 'raffle',
+                                'prize', 'win', 'winner', 'winning', 'claim your prize',
+                                'enter to win', 'enter now', 'limited offer', 'act now',
+                                'don\'t miss', 'last chance', 'final call', 'while supplies last',
+                                'exclusive offer', 'vip access', 'members only', 'insider deal',
+                                'secret sale', 'hidden deal', 'unadvertised offer', 'private sale',
+                                'exclusive deal', 'exclusive promotion', 'exclusive discount'
+                                
+                        ]
+    if any(word in full_text for word in promotion_keywords):
+        score -= 20
+        logger.debug(f"  -20: Promotion keywords detected")
     
     return min(score, 100)
