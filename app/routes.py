@@ -71,6 +71,7 @@ def logout():
 
 
 @bp.route('/api/stats')
+@login_required
 def get_stats():
     conn = get_db()
     total = conn.execute('SELECT COUNT(*) FROM processed_emails').fetchone()[0]
@@ -88,6 +89,7 @@ def get_stats():
     })
 
 @bp.route('/api/categories')
+@login_required
 def get_categories():
     conn = get_db()
     columns = conn.execute("PRAGMA table_info(processed_emails)").fetchall()
@@ -100,6 +102,7 @@ def get_categories():
     return {row['category']: row['count'] for row in rows}
 
 @bp.route('/api/emails')
+@login_required
 def get_emails():
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
@@ -155,10 +158,12 @@ def get_emails():
     })
 
 @bp.route('/analytics')
+@login_required
 def analytics():
     return render_template('analytics.html')
 
 @bp.route('/api/analytics')
+@login_required
 def get_analytics():
     range_param = request.args.get('range', '30d')
     conn = get_db()
@@ -214,10 +219,12 @@ def get_analytics():
     })
 
 @bp.route('/priority')
+@login_required
 def priority_inbox():
     return render_template('priority.html')
 
 @bp.route('/api/email/<email_id>')
+@login_required
 def get_email_api(email_id):
     conn = get_db()
     email = conn.execute('SELECT * FROM processed_emails WHERE email_id = ?', (str(email_id),)).fetchone()
@@ -227,15 +234,18 @@ def get_email_api(email_id):
     return jsonify({'error': 'Email not found'}), 404
 
 @bp.route('/categories')
+@login_required
 def categories():
     return render_template('categories.html')
 
 @bp.route('/emails')
+@login_required
 def emails_page():
     return render_template('emails.html')
 
 
 @bp.route('/api/weekly-trend')
+@login_required
 def get_weekly_trend():
     """Get last 7 days email counts for the trend chart"""
     conn = get_db()
@@ -248,6 +258,7 @@ def get_weekly_trend():
     return jsonify(result)
 
 @bp.route('/api/daily-volume')
+@login_required
 def get_daily_volume():
     """Get last 30 days of email volume for analytics"""
     conn = get_db()
@@ -262,6 +273,7 @@ def get_daily_volume():
     return jsonify([{'date': row[0], 'count': row[1]} for row in daily])
 
 @bp.route('/api/hourly-distribution')
+@login_required
 def get_hourly_distribution():
     """Get email distribution by hour of day"""
     conn = get_db()
