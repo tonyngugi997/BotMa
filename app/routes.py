@@ -447,3 +447,24 @@ def switch_account():
         'account_id': account_id,
         'email': account[1]
     })
+
+    
+
+@bp.route('/api/active-account-details')
+@login_required
+def get_active_account_details():
+    """Get full details of the currently active account"""
+    account_id = session.get('active_account_id')
+    
+    if not account_id:
+        return jsonify({'has_account': False, 'email': None})
+    
+    conn = get_db()
+    account = conn.execute('SELECT id, email FROM email_accounts WHERE id = ? AND user_id = ?', 
+                          (account_id, current_user.id)).fetchone()
+    conn.close()
+    
+    if account:
+        return jsonify({'has_account': True, 'email': account[1], 'id': account[0]})
+    
+    return jsonify({'has_account': False, 'email': None})

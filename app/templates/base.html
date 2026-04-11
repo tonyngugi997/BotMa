@@ -554,6 +554,10 @@
             </div>
         </div>
     </div>
+    <div id="activeAccountBadge" style="background: #1e293b; border-radius: 20px; padding: 0.2rem 0.8rem; font-size: 0.7rem; margin-left: 1rem;">
+    <i class="fas fa-envelope" style="color: #3b82f6;"></i>
+    <span id="activeAccountEmail">Loading...</span>
+</div>
 
     <div class="content-padding">
         {% block content %}{% endblock %}
@@ -804,6 +808,31 @@
             window.location.href = '/logout';
         }
     });
+</script>
+
+<script>
+    // Load active account info
+async function loadActiveAccount() {
+    try {
+        const res = await fetch('/api/active-account-details');
+        const data = await res.json();
+        
+        const badgeSpan = document.getElementById('activeAccountEmail');
+        if (badgeSpan) {
+            if (data.has_account && data.email) {
+                // Truncate long emails
+                const shortEmail = data.email.length > 25 ? data.email.substring(0, 22) + '...' : data.email;
+                badgeSpan.innerText = shortEmail;
+            } else {
+                badgeSpan.innerText = 'No account selected';
+            }
+        }
+    } catch (e) {
+        console.error('Failed to load active account:', e);
+    }
+}
+
+loadActiveAccount();
 </script>
 </body>
 </html>
