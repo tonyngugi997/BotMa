@@ -20,4 +20,16 @@ def calculate_priority_score(subject, sender, body):
     
     score = 50
     
-    return score
+    full_text = f"{subject} {body}".lower()
+    
+    urgency_keywords = ['urgent', 'asap', 'immediate', 
+                        'action required', 'time sensitive',
+                        'important', 'priority', 'deadline',
+                        'emergency', 'attention', 'critical', 
+                        'invoice', 'payment', 'meeting', 'schedule',
+                        'follow up', 'response needed' ]
+    if any(word in full_text for word in urgency_keywords):
+        score += 30
+        logger.debug(f"  +30: Urgency keywords found")
+    
+    return min(score, 100)
