@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 2rem auto;">
+    <div class="glass-card" style="padding: 2rem;">
+        <h2 style="margin-bottom: 1.5rem;">Connect Email Account</h2>
+        
+        <form method="POST">
+            <div style="margin-bottom: 1rem;">
+                <label>Email Address</label>
+                <input type="email" name="email" required style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white;">
+            </div>
+            
+            <div style="margin-bottom: 1rem;">
+                <label>App Password</label>
+                <input type="password" name="app_password" required style="width: 100%; padding: 0.75rem; border-radius: 8px; border: 1px solid #334155; background: #0f172a; color: white;">
+            </div>
+            
+            <button type="submit" style="width: 100%; background: #3b82f6; border: none; padding: 0.75rem; border-radius: 8px; color: white; cursor: pointer;">
+                Connect
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
