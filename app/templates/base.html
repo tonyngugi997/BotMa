@@ -553,6 +553,15 @@
     <div class="content-padding">
         {% block content %}{% endblock %}
     </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="flash-message flash-{{ category }}" style="background: #1e293b; border-left: 4px solid {% if category == 'success' %}#22c55e{% else %}#ef4444{% endif %}; padding: 0.8rem; margin-bottom: 1rem; border-radius: 8px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+{% endwith %}
 </main>
 
 <!-- Modal -->

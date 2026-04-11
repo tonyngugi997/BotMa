@@ -28,6 +28,8 @@ def login():
         user = User.find_by_username(username)
         
         if user and check_password_hash(user.password_hash, password):
+            flash('Logged in successfully.', 'success')
+            
             login_user(user)
             return redirect(url_for('main.dashboard'))
         else:
