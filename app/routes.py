@@ -33,6 +33,11 @@ def login():
             flash('Logged in successfully.', 'success')
 
             login_user(user)
+            conn = get_db()
+            first_account = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (user.id,)).fetchone()
+            if first_account:
+                session['active_account_id'] = first_account[0]
+            conn.close()
             return redirect(url_for('main.dashboard'))
         else:
             return render_template('login.html', error='Invalid username or password')
