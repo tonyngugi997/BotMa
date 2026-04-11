@@ -532,19 +532,24 @@
                     <i class="far fa-user-circle"></i>
                     <span class="tooltip-text">Account</span>
                     <div class="dropdown-menu" id="userDropdown">
-                        <div class="dropdown-item" style="font-weight: 600; border-bottom: 1px solid #334155;">
-                            {% if current_user.is_authenticated %}
-                                👤 {{ current_user.username }}
-                            {% else %}
-                                Guest
-                            {% endif %}
-                        </div>
-                        <div class="dropdown-item" id="profileStats">My Stats</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-item" id="logoutBtn" style="color: #f87171;">
-                            <i class="fas fa-sign-out-alt"></i> Logout
-                        </div>
+                    <div class="dropdown-item" style="font-weight: 600; border-bottom: 1px solid #334155;">
+                        {% if current_user.is_authenticated %}
+                            <i class="fas fa-user-circle"></i> {{ current_user.username }}
+                        {% else %}
+                            Guest
+                        {% endif %}
                     </div>
+                    <div class="dropdown-item" id="profileStats">
+                        <i class="fas fa-chart-simple"></i> My Stats
+                    </div>
+                    <div class="dropdown-item" id="connectEmailBtn">
+                        <i class="fas fa-plus-circle"></i> Connect Email
+                    </div>
+                    <div class="dropdown-divider"></div>
+                    <div class="dropdown-item" id="logoutBtn" style="color: #f87171;">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </div>
+                </div>
                 </div>
             </div>
         </div>
@@ -580,6 +585,10 @@
 </div>
 
 <script>
+
+    document.getElementById('connectEmailBtn')?.addEventListener('click', () => {
+        window.location.href = '/add-email';
+});
     // Mobile menu toggle
     const mobileBtn = document.getElementById('mobileMenuBtn');
     const sidebar = document.getElementById('sidebar');
