@@ -14,15 +14,10 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
-
-
-
-
 @bp.route('/')
+@login_required
 def dashboard():
     return render_template('dashboard.html')
-
-
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():
