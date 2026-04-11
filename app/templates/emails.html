@@ -1,22 +1,20 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="animate-fade-in">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">📧 All Emails</h1>
-        <p class="text-gray-500 mt-1">Search, filter, and manage your processed emails</p>
+<div class="animate-in">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; color: transparent;">📬 All Emails</h1>
+        <p style="color: #94a3b8;">Search, filter, and manage your processed emails</p>
     </div>
 
-    <!-- Advanced Filters -->
-    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 transition-all duration-300 hover:shadow-xl">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="relative">
-                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
-                <input type="text" id="searchInput" placeholder="Search sender or subject..." 
-                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+    <!-- Filter Bar -->
+    <div class="glass-card" style="padding: 1.5rem; margin-bottom: 2rem;">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem;">
+            <div>
+                <input type="text" id="searchInput" placeholder="Search sender or subject..." style="width: 100%; padding: 10px 12px; border-radius: 40px; border: 1px solid #334155; background: #1e293b; color: white;">
             </div>
             <div>
-                <select id="categoryFilter" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                <select id="categoryFilter" style="width: 100%; padding: 10px 12px; border-radius: 40px; background: #1e293b; color: white; border: 1px solid #334155;">
                     <option value="">All Categories</option>
                     <option value="SECURITY">🔒 Security</option>
                     <option value="PROMOTION">🎯 Promotion</option>
@@ -27,75 +25,64 @@
                 </select>
             </div>
             <div>
-                <select id="sortSelect" class="w-full px-4 py-2 border border-gray-300 rounded-xl">
+                <select id="priorityFilter" style="width: 100%; padding: 10px 12px; border-radius: 40px; background: #1e293b; color: white; border: 1px solid #334155;">
+                    <option value="">All Priorities</option>
+                    <option value="high">🔴 High (≥70)</option>
+                    <option value="medium">🟡 Medium (40-69)</option>
+                    <option value="low">🟢 Low (&lt;40)</option>
+                </select>
+            </div>
+            <div>
+                <select id="sortSelect" style="width: 100%; padding: 10px 12px; border-radius: 40px; background: #1e293b; color: white; border: 1px solid #334155;">
                     <option value="desc">Newest First</option>
                     <option value="asc">Oldest First</option>
                 </select>
             </div>
             <div>
-                <button id="searchBtn" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105">
-                    <i class="fas fa-search mr-2"></i>Search
-                </button>
+                <button id="searchBtn" class="btn-primary" style="width: 100%;">🔍 Search</button>
             </div>
         </div>
     </div>
 
-    <!-- Results Count and View Toggle -->
-    <div class="flex justify-between items-center mb-4">
-        <div class="text-sm text-gray-500" id="resultStats"></div>
-        <div class="flex gap-2">
-            <button id="tableViewBtn" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg"><i class="fas fa-table"></i></button>
-            <button id="cardViewBtn" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg"><i class="fas fa-th-large"></i></button>
+    <!-- View Toggle & Stats -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div style="color: #94a3b8;" id="resultStats"></div>
+        <div style="display: flex; gap: 8px;">
+            <button id="tableViewBtn" style="background: #3b82f6; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer;"><i class="fas fa-table"></i> Table</button>
+            <button id="cardViewBtn" style="background: #1e293b; border: none; padding: 6px 12px; border-radius: 30px; cursor: pointer;"><i class="fas fa-th-large"></i> Cards</button>
         </div>
     </div>
 
-    <!-- Email Table View -->
-    <div id="tableView" class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all">
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="bg-gray-50 border-b border-gray-200">
-                    <tr class="text-left text-gray-600 text-sm">
-                        <th class="px-6 py-4">Sender</th>
-                        <th class="px-6 py-4">Subject</th>
-                        <th class="px-6 py-4">Category</th>
-                        <th class="px-6 py-4">Date</th>
-                        <th class="px-6 py-4">Action</th>
-                    </tr>
-                </thead>
-                <tbody id="emailsTableBody">
-                    <tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</td></tr>
-                </tbody>
-            </table>
-        </div>
-        <div id="pagination" class="px-6 py-4 border-t border-gray-200 flex justify-between items-center"></div>
+    <!-- Table View -->
+    <div id="tableView" class="glass-card" style="overflow-x: auto; padding: 0;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead style="border-bottom: 1px solid #334155;">
+                <tr style="color: #94a3b8;">
+                    <th style="padding: 1rem; text-align: left;">Sender</th>
+                    <th style="padding: 1rem; text-align: left;">Subject</th>
+                    <th style="padding: 1rem; text-align: left;">Priority</th>
+                    <th style="padding: 1rem; text-align: left;">Category</th>
+                    <th style="padding: 1rem; text-align: left;">Date</th>
+                    <th style="padding: 1rem; text-align: left;"></th>
+                 </tr>
+            </thead>
+            <tbody id="emailsTableBody">
+                <tr><td colspan="6" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+            </tbody>
+        </table>
+        <div id="pagination" style="padding: 1rem; border-top: 1px solid #334155; display: flex; justify-content: space-between;"></div>
     </div>
 
-    <!-- Email Card View (hidden by default) -->
-    <div id="cardView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+    <!-- Card View (hidden initially) -->
+    <div id="cardView" style="display: none; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;"></div>
 </div>
-
-<style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-        animation: fadeIn 0.5s ease-out;
-    }
-    .email-card {
-        transition: all 0.3s ease;
-    }
-    .email-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.02);
-    }
-</style>
 
 <script>
     let currentPage = 1;
     let currentCategory = '';
     let currentSearch = '';
     let currentSort = 'desc';
+    let currentPriority = '';
     let viewMode = 'table';
 
     async function loadEmails() {
@@ -104,145 +91,113 @@
             per_page: 20,
             category: currentCategory,
             search: currentSearch,
-            sort: currentSort
+            sort: currentSort,
+            priority: currentPriority
         });
-        
-        const response = await fetch(`/api/emails?${params}`);
-        const data = await response.json();
-        
+        const res = await fetch(`/api/emails?${params}`);
+        const data = await res.json();
         document.getElementById('resultStats').innerHTML = `Showing ${data.emails.length} of ${data.total} emails`;
-        
-        if (viewMode === 'table') {
-            renderTableView(data);
-        } else {
-            renderCardView(data);
-        }
+        if (viewMode === 'table') renderTable(data);
+        else renderCards(data);
         renderPagination(data);
     }
 
-    function renderTableView(data) {
+    function renderTable(data) {
         const tbody = document.getElementById('emailsTableBody');
-        if (data.emails.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-inbox text-4xl mb-2 block"></i>No emails found</td></tr>';
+        if (!data.emails.length) {
+            tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem;">No emails found</td></tr>';
             return;
         }
         tbody.innerHTML = data.emails.map(email => `
-            <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer" onclick="window.location.href='/email/${email.email_id}'">
-                <td class="px-6 py-3 text-sm text-gray-700">${escapeHtml(email.sender.substring(0, 50))}</td>
-                <td class="px-6 py-3 text-sm text-gray-700 font-medium">${escapeHtml(email.subject.substring(0, 60))}</td>
-                <td class="px-6 py-3">${getCategoryBadge(email.category)}</td>
-                <td class="px-6 py-3 text-sm text-gray-500">${formatDate(email.processed_at)}</td>
-                <td class="px-6 py-3"><i class="fas fa-chevron-right text-gray-400"></i></td>
+            <tr style="border-bottom: 1px solid #1e293b; cursor: pointer;" onclick="showEmailDetail('${email.email_id}')">
+                <td style="padding: 1rem;">${escapeHtml(email.sender.substring(0, 50))}</td>
+                <td style="padding: 1rem; font-weight: 500;">${escapeHtml(email.subject.substring(0, 60))}</td>
+                <td style="padding: 1rem;"><span style="background: ${getPriorityColor(email.priority_score)}; padding: 4px 10px; border-radius: 30px; font-size: 0.75rem;">${email.priority_score || 50}</span></td>
+                <td style="padding: 1rem;">${getCategoryBadge(email.category)}</td>
+                <td style="padding: 1rem;">${new Date(email.processed_at).toLocaleDateString()}</td>
+                <td style="padding: 1rem;"><i class="fas fa-chevron-right"></i></td>
             </tr>
         `).join('');
     }
 
-    function renderCardView(data) {
+    function renderCards(data) {
         const container = document.getElementById('cardView');
-        if (data.emails.length === 0) {
-            container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-inbox text-4xl mb-2 block"></i>No emails found</div>';
+        if (!data.emails.length) {
+            container.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:2rem;">No emails found</div>';
             return;
         }
         container.innerHTML = data.emails.map(email => `
-            <div class="email-card bg-white rounded-2xl shadow-md p-5 cursor-pointer hover:shadow-xl transition-all" onclick="window.location.href='/email/${email.email_id}'">
-                <div class="flex justify-between items-start mb-3">
-                    ${getCategoryBadge(email.category)}
-                    <span class="text-xs text-gray-400">${formatDate(email.processed_at)}</span>
+            <div class="glass-card" style="padding: 1.2rem; cursor: pointer;" onclick="showEmailDetail('${email.email_id}')">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                    <span>${getCategoryBadge(email.category)}</span>
+                    <span style="background: ${getPriorityColor(email.priority_score)}; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem;">${email.priority_score}</span>
                 </div>
-                <h3 class="font-semibold text-gray-800 mb-1 line-clamp-1">${escapeHtml(email.subject)}</h3>
-                <p class="text-sm text-gray-500 mb-2">${escapeHtml(email.sender)}</p>
-                <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(email.body_preview || 'No preview')}</p>
-                <div class="mt-3 text-blue-500 text-sm"><i class="fas fa-eye"></i> View details</div>
+                <h3 style="font-weight: 600; margin: 0.5rem 0;">${escapeHtml(email.subject.substring(0, 50))}</h3>
+                <p style="color: #94a3b8; font-size: 0.8rem;">${escapeHtml(email.sender)}</p>
+                <p style="font-size: 0.8rem; margin-top: 0.5rem;">${escapeHtml((email.body_preview || '').substring(0, 80))}...</p>
+                <div style="margin-top: 0.8rem; font-size: 0.7rem; color: #3b82f6;">${new Date(email.processed_at).toLocaleDateString()}</div>
             </div>
         `).join('');
+        container.style.display = 'grid';
     }
 
-    function getCategoryBadge(category) {
-        const colors = {
-            'SECURITY': 'bg-red-100 text-red-700',
-            'PROMOTION': 'bg-orange-100 text-orange-700',
-            'PERSONAL': 'bg-green-100 text-green-700',
-            'BUSINESS': 'bg-blue-100 text-blue-700',
-            'SOCIAL': 'bg-purple-100 text-purple-700',
-            'OTHER': 'bg-gray-100 text-gray-700'
-        };
-        const icons = {
-            'SECURITY': '🔒',
-            'PROMOTION': '🎯',
-            'PERSONAL': '👤',
-            'BUSINESS': '💼',
-            'SOCIAL': '📱',
-            'OTHER': '📁'
-        };
-        return `<span class="px-2 py-1 text-xs rounded-full ${colors[category] || colors['OTHER']}">${icons[category] || icons['OTHER']} ${category || 'OTHER'}</span>`;
+    function getCategoryBadge(cat) {
+        const colors = { SECURITY:'#dc2626', PROMOTION:'#f59e0b', PERSONAL:'#10b981', BUSINESS:'#3b82f6', SOCIAL:'#8b5cf6', OTHER:'#64748b' };
+        const icons = { SECURITY:'🔒', PROMOTION:'🎯', PERSONAL:'👤', BUSINESS:'💼', SOCIAL:'📱', OTHER:'📁' };
+        return `<span style="background: ${colors[cat] || '#64748b'}; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem;">${icons[cat] || '📁'} ${cat || 'OTHER'}</span>`;
     }
 
-    function formatDate(dateStr) {
-        const date = new Date(dateStr);
-        const now = new Date();
-        const diff = now - date;
-        if (diff < 86400000) return date.toLocaleTimeString();
-        if (diff < 604800000) return date.toLocaleDateString(undefined, { weekday: 'short' });
-        return date.toLocaleDateString();
+    function getPriorityColor(score) {
+        if (score >= 70) return '#dc2626';
+        if (score >= 40) return '#f59e0b';
+        return '#22c55e';
     }
 
     function renderPagination(data) {
-        const container = document.getElementById('pagination');
-        if (data.total_pages <= 1) {
-            container.innerHTML = '';
-            return;
-        }
-        let html = `<div class="text-sm text-gray-500">Page ${data.page} of ${data.total_pages}</div><div class="flex gap-2">`;
-        if (data.page > 1) html += `<button onclick="goToPage(${data.page - 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50"><i class="fas fa-chevron-left"></i></button>`;
-        html += `<button onclick="goToPage(${data.page + 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50"><i class="fas fa-chevron-right"></i></button>`;
+        const div = document.getElementById('pagination');
+        if (data.total_pages <= 1) { div.innerHTML = ''; return; }
+        let html = `<span>Page ${data.page} of ${data.total_pages}</span><div>`;
+        if (data.page > 1) html += `<button onclick="goToPage(${data.page-1})" style="background:#1e293b; border:none; padding:4px 12px; border-radius:20px; margin-right:8px;">← Prev</button>`;
+        if (data.page < data.total_pages) html += `<button onclick="goToPage(${data.page+1})" style="background:#1e293b; border:none; padding:4px 12px; border-radius:20px;">Next →</button>`;
         html += `</div>`;
-        container.innerHTML = html;
+        div.innerHTML = html;
     }
 
-    function goToPage(page) {
-        currentPage = page;
-        loadEmails();
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+    function goToPage(page) { currentPage = page; loadEmails(); }
 
     document.getElementById('searchBtn').addEventListener('click', () => {
         currentSearch = document.getElementById('searchInput').value;
         currentCategory = document.getElementById('categoryFilter').value;
+        currentPriority = document.getElementById('priorityFilter').value;
         currentSort = document.getElementById('sortSelect').value;
         currentPage = 1;
         loadEmails();
     });
-
-    document.getElementById('searchInput').addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') document.getElementById('searchBtn').click();
-    });
-
+    
     document.getElementById('tableViewBtn').addEventListener('click', () => {
         viewMode = 'table';
-        document.getElementById('tableView').classList.remove('hidden');
-        document.getElementById('cardView').classList.add('hidden');
-        document.getElementById('tableViewBtn').classList.add('bg-blue-100', 'text-blue-700');
-        document.getElementById('cardViewBtn').classList.remove('bg-blue-100', 'text-blue-700');
-        document.getElementById('cardViewBtn').classList.add('bg-gray-100', 'text-gray-700');
+        document.getElementById('tableView').style.display = 'block';
+        document.getElementById('cardView').style.display = 'none';
         loadEmails();
     });
-
+    
     document.getElementById('cardViewBtn').addEventListener('click', () => {
         viewMode = 'card';
-        document.getElementById('tableView').classList.add('hidden');
-        document.getElementById('cardView').classList.remove('hidden');
-        document.getElementById('cardViewBtn').classList.add('bg-blue-100', 'text-blue-700');
-        document.getElementById('tableViewBtn').classList.remove('bg-blue-100', 'text-blue-700');
-        document.getElementById('tableViewBtn').classList.add('bg-gray-100', 'text-gray-700');
+        document.getElementById('tableView').style.display = 'none';
+        document.getElementById('cardView').style.display = 'grid';
         loadEmails();
     });
-
+    
+    function escapeHtml(str) { 
+        if(!str) return ''; 
+        return str.replace(/[&<>]/g, function(m){
+            if(m==='&') return '&amp;'; 
+            if(m==='<') return '&lt;'; 
+            if(m==='>') return '&gt;'; 
+            return m;
+        }); 
+    }
+    
     loadEmails();
 </script>
 {% endblock %}

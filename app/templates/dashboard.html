@@ -1,92 +1,45 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div>
-    <!-- Header -->
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p class="text-gray-500 mt-1">Real-time overview of your email processing</p>
+<div class="animate-in">
+    <div style="margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; color: transparent;">Dashboard</h1>
+        <p style="color: #94a3b8;">Real-time overview of your email intelligence</p>
     </div>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-blue-100 rounded-lg">
-                    <i class="fas fa-envelope text-blue-600 text-xl"></i>
-                </div>
-                <span class="text-3xl font-bold text-gray-800" id="totalEmails">-</span>
-            </div>
-            <h3 class="text-gray-600 text-sm font-medium">Total Emails Processed</h3>
-            <p class="text-gray-400 text-xs mt-2">All time</p>
+    <!-- Stats Grid - CLICKABLE -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div class="glass-card stat-card" data-type="all" style="padding: 1.5rem; cursor: pointer;">
+            <div style="display: flex; justify-content: space-between;"><div><i class="fas fa-envelope" style="font-size:2rem;color:#3b82f6;"></i></div><span style="font-size:2rem;font-weight:700;" id="totalEmails">--</span></div>
+            <div>Total Processed</div><div style="font-size:0.8rem;color:#64748b;">All time · click to view</div>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-green-100 rounded-lg">
-                    <i class="fas fa-users text-green-600 text-xl"></i>
-                </div>
-                <span class="text-3xl font-bold text-gray-800" id="uniqueSenders">-</span>
-            </div>
-            <h3 class="text-gray-600 text-sm font-medium">Unique Senders</h3>
-            <p class="text-gray-400 text-xs mt-2">Distinct contacts</p>
+        <div class="glass-card stat-card" data-type="senders" style="padding: 1.5rem; cursor: pointer;">
+            <div style="display: flex; justify-content: space-between;"><div><i class="fas fa-users" style="font-size:2rem;color:#10b981;"></i></div><span style="font-size:2rem;font-weight:700;" id="uniqueSenders">--</span></div>
+            <div>Unique Senders</div><div style="font-size:0.8rem;color:#64748b;">click to see list</div>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-purple-100 rounded-lg">
-                    <i class="fas fa-calendar-week text-purple-600 text-xl"></i>
-                </div>
-                <span class="text-3xl font-bold text-gray-800" id="last7Days">-</span>
-            </div>
-            <h3 class="text-gray-600 text-sm font-medium">Last 7 Days</h3>
-            <p class="text-gray-400 text-xs mt-2">Recent activity</p>
+        <div class="glass-card stat-card" data-type="week" style="padding: 1.5rem; cursor: pointer;">
+            <div style="display: flex; justify-content: space-between;"><div><i class="fas fa-calendar-week" style="font-size:2rem;color:#f59e0b;"></i></div><span style="font-size:2rem;font-weight:700;" id="last7Days">--</span></div>
+            <div>Last 7 Days</div><div style="font-size:0.8rem;color:#64748b;">click to view</div>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
-            <div class="flex items-center justify-between mb-4">
-                <div class="p-3 bg-orange-100 rounded-lg">
-                    <i class="fas fa-clock text-orange-600 text-xl"></i>
-                </div>
-                <span class="text-3xl font-bold text-gray-800" id="todayCount">-</span>
-            </div>
-            <h3 class="text-gray-600 text-sm font-medium">Today</h3>
-            <p class="text-gray-400 text-xs mt-2">Last 24 hours</p>
+        <div class="glass-card stat-card" data-type="today" style="padding: 1.5rem; cursor: pointer;">
+            <div style="display: flex; justify-content: space-between;"><div><i class="fas fa-clock" style="font-size:2rem;color:#ec489a;"></i></div><span style="font-size:2rem;font-weight:700;" id="todayCount">--</span></div>
+            <div>Today</div><div style="font-size:0.8rem;color:#64748b;">click to view</div>
         </div>
     </div>
 
-    <!-- Charts Row -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Emails by Category</h3>
-            <canvas id="categoryChart" height="250"></canvas>
-        </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Weekly Trend</h3>
-            <canvas id="trendChart" height="250"></canvas>
-        </div>
+    <!-- Charts -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap:1.5rem; margin-bottom:2rem;">
+        <div class="glass-card" style="padding:1.5rem;"><h3><i class="fas fa-chart-pie"></i> Categories</h3><canvas id="categoryChart" height="200"></canvas></div>
+        <div class="glass-card" style="padding:1.5rem;"><h3><i class="fas fa-chart-line"></i> Weekly Trend</h3><canvas id="trendChart" height="200"></canvas></div>
     </div>
 
-    <!-- Recent Emails -->
-    <div class="bg-white rounded-xl shadow-sm p-6">
-        <div class="flex items-center justify-between mb-6">
-            <h3 class="text-lg font-semibold text-gray-800">Recent Emails</h3>
-            <a href="{{ url_for('main.emails') }}" class="text-blue-600 hover:text-blue-700 text-sm">View all →</a>
-        </div>
-        <div class="overflow-x-auto">
-            <table class="w-full">
-                <thead class="border-b border-gray-200">
-                    <tr class="text-left text-gray-500 text-sm">
-                        <th class="pb-3">Sender</th>
-                        <th class="pb-3">Subject</th>
-                        <th class="pb-3">Category</th>
-                        <th class="pb-3">Processed</th>
-                    </tr>
-                </thead>
-                <tbody id="recentEmailsTable">
-                    <tr><td colspan="4" class="text-center py-8 text-gray-400">Loading...</td></tr>
-                </tbody>
+    <!-- Recent Emails Table -->
+    <div class="glass-card" style="padding:1.5rem;">
+        <div style="display:flex; justify-content:space-between;"><h3>📬 Recent Emails</h3><a href="{{ url_for('main.get_emails') }}" style="color:#3b82f6;">View all →</a></div>
+        <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse;">
+                <thead><tr style="border-bottom:1px solid #334155;"><th style="padding:12px 8px; text-align:left;">Sender</th><th>Subject</th><th>Priority</th><th>Date</th></tr></thead>
+                <tbody id="recentEmailsTable"></tbody>
             </table>
         </div>
     </div>
@@ -94,79 +47,148 @@
 
 <script>
     async function loadStats() {
-        const response = await fetch('/api/stats');
-        const data = await response.json();
-        document.getElementById('totalEmails').textContent = data.total_emails;
-        document.getElementById('uniqueSenders').textContent = data.unique_senders;
-        document.getElementById('last7Days').textContent = data.last_7_days;
-        document.getElementById('todayCount').textContent = data.today_count;
+        const res = await fetch('/api/stats');
+        const data = await res.json();
+        document.getElementById('totalEmails').innerText = data.total_emails || 0;
+        document.getElementById('uniqueSenders').innerText = data.unique_senders || 0;
+        document.getElementById('last7Days').innerText = data.last_7_days || 0;
+        document.getElementById('todayCount').innerText = data.today_count || 0;
     }
-
     async function loadCategoryChart() {
-        const response = await fetch('/api/categories');
-        const data = await response.json();
-        
-        const ctx = document.getElementById('categoryChart').getContext('2d');
-        new Chart(ctx, {
+        const res = await fetch('/api/categories');
+        const data = await res.json();
+        new Chart(document.getElementById('categoryChart'), {
             type: 'doughnut',
-            data: {
-                labels: Object.keys(data),
-                datasets: [{
-                    data: Object.values(data),
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#6b7280'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { position: 'bottom' }
-                }
-            }
+            data: { labels: Object.keys(data), datasets: [{ data: Object.values(data), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#64748b'], borderWidth: 0 }] },
+            options: { responsive: true, plugins: { legend: { position: 'bottom', labels: { color: '#cbd5e1' } } } }
         });
     }
-
     async function loadRecentEmails() {
-        const response = await fetch('/api/emails?per_page=5');
-        const data = await response.json();
-        
+        const res = await fetch('/api/emails?per_page=5');
+        const data = await res.json();
         const tbody = document.getElementById('recentEmailsTable');
-        if (data.emails.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">No emails found</td></tr>';
-            return;
-        }
-        
+        if(!data.emails.length) { tbody.innerHTML = '<tr><td colspan="4" style="text-align:center;">No emails</td></tr>'; return; }
         tbody.innerHTML = data.emails.map(email => `
-            <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
-                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.sender.substring(0, 40))}</td>
-                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.subject.substring(0, 50))}</td>
-                <td class="py-3"><span class="px-2 py-1 text-xs rounded-full ${getCategoryColor(email.category)}">${email.category || 'OTHER'}</span></td>
-                <td class="py-3 text-sm text-gray-500">${new Date(email.processed_at).toLocaleDateString()}</td>
+            <tr style="border-bottom:1px solid #1e293b; cursor:pointer;" onclick="showEmailDetail('${email.email_id}')">
+                <td style="padding:12px 8px;">${escapeHtml(email.sender.substring(0,40))}</td>
+                <td style="padding:12px 8px;">${escapeHtml(email.subject.substring(0,50))}</td>
+                <td style="padding:12px 8px;"><span style="background:${getPriorityColor(email.priority_score)}; padding:4px 8px; border-radius:20px;">${email.priority_score||50}</span></td>
+                <td style="padding:12px 8px;">${new Date(email.processed_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
     }
+    function getPriorityColor(score) { if(score>=70) return '#dc2626'; if(score>=40) return '#f59e0b'; return '#22c55e'; }
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
 
-    function getCategoryColor(category) {
-        const colors = {
-            'SECURITY': 'bg-red-100 text-red-700',
-            'PROMOTION': 'bg-orange-100 text-orange-700',
-            'PERSONAL': 'bg-green-100 text-green-700',
-            'BUSINESS': 'bg-blue-100 text-blue-700',
-            'SOCIAL': 'bg-purple-100 text-purple-700',
-            'OTHER': 'bg-gray-100 text-gray-700'
-        };
-        return colors[category] || colors['OTHER'];
-    }
+    // Card click handlers using global modal (list view)
+    document.querySelectorAll('.stat-card').forEach(card => {
+        card.addEventListener('click', async () => {
+            const type = card.dataset.type;
+            if(type === 'all') {
+                const res = await fetch('/api/emails?per_page=100');
+                const data = await res.json();
+                if(!data.emails.length) { showModal('All Emails', '<div>No emails</div>'); return; }
+                const listHtml = `<div style="display:flex; flex-direction:column; gap:0.5rem;">${data.emails.map(email => `
+                    <div class="email-list-item" data-id="${email.email_id}" style="background:#1e293b; border-radius:12px; padding:0.8rem; cursor:pointer;">
+                        <div style="font-weight:600;">${escapeHtml(email.subject)}</div>
+                        <div style="font-size:0.8rem;">${escapeHtml(email.sender)} · ${new Date(email.processed_at).toLocaleString()}</div>
+                    </div>
+                `).join('')}</div>`;
+                showModal(`All Emails (${data.total})`, listHtml);
+                attachEmailClickHandlers();
+            }
+            else if(type === 'senders') {
+                const res = await fetch('/api/emails?per_page=1000');
+                const data = await res.json();
+                const senderMap = new Map();
+                data.emails.forEach(email => { if(!senderMap.has(email.sender)) senderMap.set(email.sender, { count:0, emails:[] }); senderMap.get(email.sender).count++; senderMap.get(email.sender).emails.push(email); });
+                const sendersList = Array.from(senderMap.entries()).map(([s,info]) => ({ sender:s, count:info.count, emails:info.emails })).sort((a,b)=>b.count-a.count);
+                const listHtml = `<div style="display:flex; flex-direction:column; gap:0.5rem;">${sendersList.map(s => `
+                    <div class="sender-item" data-sender="${escapeHtml(s.sender)}" style="background:#1e293b; border-radius:12px; padding:0.8rem; cursor:pointer;">
+                        <div style="font-weight:600;">${escapeHtml(s.sender)}</div>
+                        <div style="font-size:0.7rem;">${s.count} emails</div>
+                    </div>
+                `).join('')}</div>`;
+                showModal(`Unique Senders (${sendersList.length})`, listHtml);
+                document.querySelectorAll('.sender-item').forEach(el => {
+                    el.addEventListener('click', async () => {
+                        const sender = el.dataset.sender;
+                        const res2 = await fetch(`/api/emails?per_page=200`);
+                        const data2 = await res2.json();
+                        const senderEmails = data2.emails.filter(e => e.sender === sender);
+                        const subHtml = `<div style="display:flex; flex-direction:column; gap:0.5rem;">${senderEmails.map(email => `
+                            <div class="email-list-item" data-id="${email.email_id}" style="background:#1e293b; border-radius:12px; padding:0.8rem; cursor:pointer;">
+                                <div style="font-weight:600;">${escapeHtml(email.subject)}</div>
+                                <div style="font-size:0.8rem;">${new Date(email.processed_at).toLocaleString()}</div>
+                            </div>
+                        `).join('')}</div>`;
+                        showModal(`Emails from ${escapeHtml(sender)} (${senderEmails.length})`, subHtml);
+                        attachEmailClickHandlers();
+                    });
+                });
+            }
+            else if(type === 'week') {
+                const res = await fetch('/api/emails?per_page=500');
+                const data = await res.json();
+                const weekAgo = new Date(); weekAgo.setDate(weekAgo.getDate()-7);
+                const weekEmails = data.emails.filter(e => new Date(e.processed_at) >= weekAgo);
+                if(!weekEmails.length) { showModal('Last 7 Days', '<div>No emails</div>'); return; }
+                const listHtml = `<div style="display:flex; flex-direction:column; gap:0.5rem;">${weekEmails.map(email => `
+                    <div class="email-list-item" data-id="${email.email_id}" style="background:#1e293b; border-radius:12px; padding:0.8rem; cursor:pointer;">
+                        <div style="font-weight:600;">${escapeHtml(email.subject)}</div>
+                        <div style="font-size:0.8rem;">${escapeHtml(email.sender)} · ${new Date(email.processed_at).toLocaleString()}</div>
+                    </div>
+                `).join('')}</div>`;
+                showModal(`Last 7 Days (${weekEmails.length})`, listHtml);
+                attachEmailClickHandlers();
+            }
+            else if(type === 'today') {
+                const res = await fetch('/api/emails?per_page=500');
+                const data = await res.json();
+                const today = new Date().toDateString();
+                const todayEmails = data.emails.filter(e => new Date(e.processed_at).toDateString() === today);
+                if(!todayEmails.length) { showModal('Today', '<div>No emails today</div>'); return; }
+                const listHtml = `<div style="display:flex; flex-direction:column; gap:0.5rem;">${todayEmails.map(email => `
+                    <div class="email-list-item" data-id="${email.email_id}" style="background:#1e293b; border-radius:12px; padding:0.8rem; cursor:pointer;">
+                        <div style="font-weight:600;">${escapeHtml(email.subject)}</div>
+                        <div style="font-size:0.8rem;">${escapeHtml(email.sender)} · ${new Date(email.processed_at).toLocaleString()}</div>
+                    </div>
+                `).join('')}</div>`;
+                showModal(`Today (${todayEmails.length})`, listHtml);
+                attachEmailClickHandlers();
+            }
+        });
+    });
 
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
+    function attachEmailClickHandlers() {
+        document.querySelectorAll('.email-list-item').forEach(el => {
+            el.addEventListener('click', () => showEmailDetail(el.dataset.id));
+        });
     }
 
     loadStats();
     loadCategoryChart();
     loadRecentEmails();
-</script>
+    
+
+        // REAL weekly trend chart
+    async function loadWeeklyTrend() {
+        const res = await fetch('/api/weekly-trend');
+        const data = await res.json();
+        const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        const today = new Date();
+        const labels = [];
+        for (let i = 6; i >= 0; i--) {
+            const d = new Date();
+            d.setDate(today.getDate() - i);
+            labels.push(days[d.getDay()] + ' ' + d.getDate());
+        }
+        new Chart(document.getElementById('trendChart'), {
+            type: 'line',
+            data: { labels: labels, datasets: [{ label: 'Emails', data: data, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', fill: true, tension: 0.3 }] },
+            options: { responsive: true, plugins: { legend: { labels: { color: '#cbd5e1' } } } }
+        });
+    }
+    loadWeeklyTrend();
+    </script>
 {% endblock %}

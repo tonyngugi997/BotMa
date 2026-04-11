@@ -1,0 +1,66 @@
+2026-04-11 15:52:17,627 - __main__ - INFO - Unread count: 7
+2026-04-11 15:52:18,463 - __main__ - INFO - Read emails in inbox: 221
+2026-04-11 15:52:18,463 - __main__ - INFO - 
+--- Label Counts ---
+2026-04-11 15:52:19,211 - __main__ - INFO - EmailAgent/SECURITY: 2 emails
+2026-04-11 15:52:19,903 - __main__ - INFO - EmailAgent/PROMOTION: 2 emails
+2026-04-11 15:52:20,470 - __main__ - INFO - EmailAgent/PERSONAL: 2 emails
+2026-04-11 15:52:21,039 - __main__ - INFO - EmailAgent/BUSINESS: 0 emails
+2026-04-11 15:52:21,719 - __main__ - INFO - EmailAgent/OTHER: 0 emails
+2026-04-11 15:52:22,446 - __main__ - INFO - EmailAgent/SOCIAL: 0 emails
+2026-04-11 15:52:22,462 - __main__ - INFO - Skipping 222 - already processed, but marking as read
+2026-04-11 15:52:23,057 - __main__ - INFO - Processing email_id: 223
+2026-04-11 15:01:59,290 - __main__ - INFO - Unread count: 7
+2026-04-11 15:01:59,752 - __main__ - INFO - Read emails in inbox: 221
+2026-04-11 15:01:59,752 - __main__ - INFO - 
+--- Label Counts ---
+2026-04-11 15:02:00,212 - __main__ - INFO - EmailAgent/SECURITY: 2 emails
+2026-04-11 15:02:00,670 - __main__ - INFO - EmailAgent/PROMOTION: 2 emails
+2026-04-11 15:02:01,126 - __main__ - INFO - EmailAgent/PERSONAL: 2 emails
+2026-04-11 15:02:01,583 - __main__ - INFO - EmailAgent/BUSINESS: 0 emails
+2026-04-11 15:02:02,043 - __main__ - INFO - EmailAgent/OTHER: 0 emails
+2026-04-11 15:02:02,502 - __main__ - INFO - EmailAgent/SOCIAL: 0 emails
+2026-04-11 15:02:02,504 - __main__ - INFO - Skipping 222 - already processed, but marking as read
+2026-04-11 15:02:02,949 - __main__ - INFO - Processing email_id: 223
+2026-04-11 15:02:02,950 - __main__ - WARNING - Email 223 has no data, marking as read and skipping
+2026-04-11 15:02:03,396 - __main__ - INFO - Processing email_id: 224
+2026-04-11 15:02:03,397 - __main__ - WARNING - Email 224 has no data, marking as read and skipping
+2026-04-11 15:02:03,842 - __main__ - INFO - Processing email_id: 225
+2026-04-11 15:02:03,842 - __main__ - WARNING - Email 225 has no data, marking as read and skipping
+2026-04-11 15:02:04,287 - __main__ - INFO - Processing email_id: 226
+2026-04-11 15:02:04,288 - __main__ - WARNING - Email 226 has no data, marking as read and skipping
+2026-04-11 15:02:04,733 - __main__ - INFO - Processing email_id: 227
+2026-04-11 15:02:04,734 - __main__ - WARNING - Email 227 has no data, marking as read and skipping
+2026-04-11 15:02:05,227 - __main__ - INFO - Processing email_id: 228
+2026-04-11 15:02:05,227 - __main__ - WARNING - Email 228 has no data, marking as read and skipping
+2026-04-11 15:32:36,708 - priority_scorer - DEBUG - Calculating priority score for: test@test.com
+2026-04-11 15:32:39,811 - priority_scorer - DEBUG - Calculating priority score for: test@test.com
+2026-04-11 15:41:01,649 - priority_scorer - DEBUG - Calculating priority score for: test@test.com
+2026-04-11 15:41:01,649 - priority_scorer - DEBUG -   +30: Urgency keywords found
+2026-04-11 15:41:28,681 - priority_scorer - DEBUG - Calculating priority score for: test@test.com
+2026-04-11 15:41:28,681 - priority_scorer - DEBUG -   +30: Urgency keywords found
+2026-04-11 15:45:05,165 - priority_scorer - DEBUG - Calculating priority score for: security@bank.com
+2026-04-11 15:45:05,165 - priority_scorer - DEBUG -   +40: Security alert detected
+2026-04-11 15:08:17,695 - __main__ - INFO - Unread count: 7
+2026-04-11 15:08:18,168 - __main__ - INFO - Read emails in inbox: 221
+2026-04-11 15:08:18,168 - __main__ - INFO - 
+--- Label Counts ---
+2026-04-11 15:08:18,617 - __main__ - INFO - EmailAgent/SECURITY: 2 emails
+2026-04-11 15:08:19,071 - __main__ - INFO - EmailAgent/PROMOTION: 2 emails
+2026-04-11 15:08:19,520 - __main__ - INFO - EmailAgent/PERSONAL: 2 emails
+2026-04-11 15:08:19,968 - __main__ - INFO - EmailAgent/BUSINESS: 0 emails
+2026-04-11 15:08:20,417 - __main__ - INFO - EmailAgent/OTHER: 0 emails
+2026-04-11 15:08:20,882 - __main__ - INFO - EmailAgent/SOCIAL: 0 emails
+2026-04-11 15:08:20,886 - __main__ - INFO - Skipping 222 - already processed, but marking as read
+2026-04-11 15:08:21,323 - __main__ - INFO - Processing email_id: 223
+2026-04-11 15:08:21,324 - __main__ - WARNING - Email 223 has no data, marking as read and skipping
+2026-04-11 15:08:21,761 - __main__ - INFO - Processing email_id: 224
+2026-04-11 15:08:21,761 - __main__ - WARNING - Email 224 has no data, marking as read and skipping
+2026-04-11 15:08:22,224 - __main__ - INFO - Processing email_id: 225
+2026-04-11 15:08:22,225 - __main__ - WARNING - Email 225 has no data, marking as read and skipping
+2026-04-11 15:08:22,685 - __main__ - INFO - Processing email_id: 226
+2026-04-11 15:08:22,685 - __main__ - WARNING - Email 226 has no data, marking as read and skipping
+2026-04-11 15:08:23,161 - __main__ - INFO - Processing email_id: 227
+2026-04-11 15:08:23,161 - __main__ - WARNING - Email 227 has no data, marking as read and skipping
+2026-04-11 15:08:23,643 - __main__ - INFO - Processing email_id: 228
+2026-04-11 15:08:23,644 - __main__ - WARNING - Email 228 has no data, marking as read and skipping

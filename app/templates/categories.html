@@ -1,141 +1,69 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="animate-fade-in">
-    <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">🏷️ Categories</h1>
-        <p class="text-gray-500 mt-1">Manage and explore emails by category</p>
-    </div>
+<div class="animate-in">
+    <h1 style="font-size: 2rem; font-weight: 700; margin-bottom: 1rem;">🏷️ Categories</h1>
+    <p style="color: #94a3b8; margin-bottom: 2rem;">Manage and explore emails by category</p>
 
-    <!-- Category Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8" id="categoryCards">
-        <div class="col-span-full text-center py-12"><i class="fas fa-spinner fa-spin"></i> Loading categories...</div>
-    </div>
+    <div id="categoryCards" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 2rem;"></div>
 
-    <!-- Emails by Selected Category -->
-    <div id="categoryEmailsSection" class="hidden">
-        <div class="bg-white rounded-2xl shadow-lg p-6">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-semibold text-gray-800" id="selectedCategoryTitle"></h3>
-                <button id="clearCategoryBtn" class="text-gray-400 hover:text-gray-600"><i class="fas fa-times"></i> Clear</button>
+    <div id="categoryEmailsSection" style="display: none;">
+        <div class="glass-card" style="padding: 1.5rem;">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 1rem;">
+                <h3 id="selectedCategoryTitle" style="font-weight: 600;"></h3>
+                <button id="clearCategoryBtn" style="background: none; border: none; color: #ef4444; cursor: pointer;">✖ Clear</button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full">
-                    <thead class="border-b border-gray-200">
-                        <tr class="text-left text-gray-500 text-sm">
-                            <th class="pb-3">Sender</th>
-                            <th class="pb-3">Subject</th>
-                            <th class="pb-3">Date</th>
-                            <th class="pb-3">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="categoryEmailsBody">
-                        <tr><td colspan="4" class="text-center py-8 text-gray-400">Select a category to view emails</td></tr>
-                    </tbody>
+            <div style="overflow-x: auto;">
+                <table style="width: 100%; border-collapse: collapse;">
+                    <thead><tr style="border-bottom:1px solid #334155;"><th style="padding: 8px; text-align:left;">Sender</th><th>Subject</th><th>Date</th></tr></thead>
+                    <tbody id="categoryEmailsBody"></tbody>
                 </table>
             </div>
         </div>
     </div>
 </div>
 
-<style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-        animation: fadeIn 0.5s ease-out;
-    }
-    .category-card {
-        transition: all 0.3s ease;
-        cursor: pointer;
-    }
-    .category-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.02);
-    }
-</style>
-
 <script>
     const categoryConfig = {
-        'SECURITY': { icon: '🔒', color: 'from-red-500 to-red-600', bg: 'bg-red-50', text: 'text-red-700' },
-        'PROMOTION': { icon: '🎯', color: 'from-orange-500 to-orange-600', bg: 'bg-orange-50', text: 'text-orange-700' },
-        'PERSONAL': { icon: '👤', color: 'from-green-500 to-green-600', bg: 'bg-green-50', text: 'text-green-700' },
-        'BUSINESS': { icon: '💼', color: 'from-blue-500 to-blue-600', bg: 'bg-blue-50', text: 'text-blue-700' },
-        'SOCIAL': { icon: '📱', color: 'from-purple-500 to-purple-600', bg: 'bg-purple-50', text: 'text-purple-700' },
-        'OTHER': { icon: '📁', color: 'from-gray-500 to-gray-600', bg: 'bg-gray-50', text: 'text-gray-700' }
+        'SECURITY': { icon: '🔒', color: '#dc2626' },
+        'PROMOTION': { icon: '🎯', color: '#f59e0b' },
+        'PERSONAL': { icon: '👤', color: '#10b981' },
+        'BUSINESS': { icon: '💼', color: '#3b82f6' },
+        'SOCIAL': { icon: '📱', color: '#8b5cf6' },
+        'OTHER': { icon: '📁', color: '#64748b' }
     };
-
     async function loadCategories() {
-        const response = await fetch('/api/categories');
-        const data = await response.json();
-        
+        const res = await fetch('/api/categories');
+        const data = await res.json();
         const container = document.getElementById('categoryCards');
-        if (Object.keys(data).length === 0) {
-            container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400">No categories found. Process some emails first.</div>';
-            return;
-        }
-        
-        container.innerHTML = Object.entries(data).map(([cat, count]) => {
-            const cfg = categoryConfig[cat] || categoryConfig['OTHER'];
-            return `
-                <div onclick="selectCategory('${cat}')" class="category-card bg-white rounded-2xl shadow-md p-5 text-center" data-category="${cat}">
-                    <div class="w-16 h-16 mx-auto bg-gradient-to-br ${cfg.color} rounded-2xl flex items-center justify-center mb-3 shadow-lg">
-                        <span class="text-2xl">${cfg.icon}</span>
-                    </div>
-                    <h3 class="font-bold text-gray-800">${cat}</h3>
-                    <p class="text-2xl font-bold mt-2">${count}</p>
-                    <p class="text-xs text-gray-400 mt-1">emails</p>
-                </div>
-            `;
-        }).join('');
+        if (Object.keys(data).length === 0) { container.innerHTML = '<div>No categories found.</div>'; return; }
+        container.innerHTML = Object.entries(data).map(([cat, count]) => `
+            <div class="glass-card" style="padding: 1rem; text-align: center; cursor: pointer;" onclick="selectCategory('${cat}')" data-category="${cat}">
+                <div style="font-size: 2rem;">${categoryConfig[cat]?.icon || '📁'}</div>
+                <div style="font-weight: 600; margin-top: 0.5rem;">${cat}</div>
+                <div style="font-size: 1.5rem; font-weight: 700;">${count}</div>
+            </div>
+        `).join('');
     }
-
     async function selectCategory(category) {
-        document.getElementById('categoryEmailsSection').classList.remove('hidden');
+        document.getElementById('categoryEmailsSection').style.display = 'block';
         document.getElementById('selectedCategoryTitle').innerHTML = `${categoryConfig[category]?.icon || '📁'} ${category} Emails`;
-        
-        const response = await fetch(`/api/emails?category=${category}&per_page=20`);
-        const data = await response.json();
-        
+        const res = await fetch(`/api/emails?category=${category}&per_page=50`);
+        const data = await res.json();
         const tbody = document.getElementById('categoryEmailsBody');
-        if (data.emails.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">No emails in this category</td></tr>';
-            return;
-        }
-        
+        if (!data.emails.length) { tbody.innerHTML = '<tr><td colspan="3">No emails</td></tr>'; return; }
         tbody.innerHTML = data.emails.map(email => `
-            <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer" onclick="window.location.href='/email/${email.email_id}'">
-                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.sender.substring(0, 50))}</td>
-                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.subject.substring(0, 60))}</td>
-                <td class="py-3 text-sm text-gray-500">${new Date(email.processed_at).toLocaleDateString()}</td>
-                <td class="py-3"><i class="fas fa-chevron-right text-gray-400"></i></td>
+            <tr style="border-bottom:1px solid #1e293b; cursor:pointer;" onclick="window.location.href='/email/${email.email_id}'">
+                <td style="padding:8px;">${escapeHtml(email.sender.substring(0,40))}</td>
+                <td style="padding:8px;">${escapeHtml(email.subject.substring(0,60))}</td>
+                <td style="padding:8px;">${new Date(email.processed_at).toLocaleDateString()}</td>
             </tr>
         `).join('');
-        
-        // Highlight selected card
-        document.querySelectorAll('.category-card').forEach(card => {
-            card.classList.remove('ring-2', 'ring-blue-500', 'shadow-xl');
-            if (card.dataset.category === category) {
-                card.classList.add('ring-2', 'ring-blue-500', 'shadow-xl');
-            }
-        });
     }
-
-    document.getElementById('clearCategoryBtn').addEventListener('click', () => {
-        document.getElementById('categoryEmailsSection').classList.add('hidden');
-        document.querySelectorAll('.category-card').forEach(card => {
-            card.classList.remove('ring-2', 'ring-blue-500', 'shadow-xl');
-        });
+    document.getElementById('clearCategoryBtn')?.addEventListener('click', () => {
+        document.getElementById('categoryEmailsSection').style.display = 'none';
     });
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
-
+    function escapeHtml(str) { if(!str) return ''; return str.replace(/[&<>]/g, function(m){if(m==='&') return '&amp;'; if(m==='<') return '&lt;'; if(m==='>') return '&gt;'; return m;}); }
     loadCategories();
 </script>
 {% endblock %}

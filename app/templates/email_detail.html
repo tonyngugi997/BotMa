@@ -1,57 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="animate-fade-in">
-    <div class="mb-6">
-        <a href="javascript:history.back()" class="inline-flex items-center text-blue-600 hover:text-blue-700 transition">
-            <i class="fas fa-arrow-left mr-2"></i> Back
-        </a>
+<div class="animate-in">
+    <div style="margin-bottom: 1rem;">
+        <a href="javascript:history.back()" style="color: #3b82f6; text-decoration: none;">← Back</a>
     </div>
-
-    <div class="bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="p-6 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-            <div class="flex flex-wrap justify-between items-start gap-4 mb-4">
-                <div class="flex gap-2">
-                    <span class="px-3 py-1 text-sm rounded-full bg-gray-100 text-gray-700"><i class="fas fa-id-card mr-1"></i> ID: {{ email.email_id }}</span>
-                    <span class="px-3 py-1 text-sm rounded-full 
-                        {% if email.category == 'SECURITY' %}bg-red-100 text-red-700
-                        {% elif email.category == 'PROMOTION' %}bg-orange-100 text-orange-700
-                        {% elif email.category == 'PERSONAL' %}bg-green-100 text-green-700
-                        {% elif email.category == 'BUSINESS' %}bg-blue-100 text-blue-700
-                        {% elif email.category == 'SOCIAL' %}bg-purple-100 text-purple-700
-                        {% else %}bg-gray-100 text-gray-700{% endif %}">
-                        {% if email.category == 'SECURITY' %}🔒{% elif email.category == 'PROMOTION' %}🎯{% elif email.category == 'PERSONAL' %}👤{% elif email.category == 'BUSINESS' %}💼{% elif email.category == 'SOCIAL' %}📱{% else %}📁{% endif %} {{ email.category or 'OTHER' }}
-                    </span>
-                </div>
-                <span class="text-sm text-gray-400"><i class="fas fa-clock mr-1"></i> {{ email.processed_at }}</span>
+    <div class="glass-card" style="padding: 2rem;">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; margin-bottom: 1rem;">
+            <div>
+                <span style="background: #1e293b; padding: 4px 12px; border-radius: 40px;">ID: {{ email.email_id }}</span>
+                <span style="background: {{ '#dc2626' if email.category=='SECURITY' else '#f59e0b' if email.category=='PROMOTION' else '#10b981' if email.category=='PERSONAL' else '#3b82f6' if email.category=='BUSINESS' else '#8b5cf6' if email.category=='SOCIAL' else '#64748b' }}; padding: 4px 12px; border-radius: 40px; margin-left: 8px;">
+                    {{ email.category or 'OTHER' }}
+                </span>
             </div>
-            
-            <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-4 break-words">{{ email.subject }}</h1>
-            
-            <div class="space-y-2 text-gray-600">
-                <div class="flex items-start gap-2">
-                    <i class="fas fa-envelope w-5 mt-0.5 text-gray-400"></i>
-                    <div><span class="font-medium">From:</span> {{ email.sender }}</div>
-                </div>
-            </div>
+            <div style="color: #94a3b8;">{{ email.processed_at }}</div>
         </div>
-        
-        <div class="p-6">
-            <h3 class="font-semibold text-gray-800 mb-3 flex items-center"><i class="fas fa-file-alt mr-2 text-blue-500"></i> Email Body</h3>
-            <div class="bg-gray-50 rounded-xl p-5 text-gray-700 whitespace-pre-wrap font-mono text-sm leading-relaxed max-h-96 overflow-y-auto">
-                {{ email.body_preview or 'No body content available' }}
-            </div>
-        </div>
+        <h1 style="font-size: 1.8rem; font-weight: 700; margin-bottom: 1rem;">{{ email.subject }}</h1>
+        <div style="margin-bottom: 1rem;"><i class="fas fa-envelope"></i> From: {{ email.sender }}</div>
+        <div style="margin-bottom: 1rem;"><i class="fas fa-chart-simple"></i> Priority Score: <strong>{{ email.priority_score or 50 }}</strong></div>
+        <div style="background: #0f172a; border-radius: 16px; padding: 1rem; margin-top: 1rem; white-space: pre-wrap; font-family: monospace;">{{ email.body_preview or 'No content' }}</div>
     </div>
 </div>
-
-<style>
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-    .animate-fade-in {
-        animation: fadeIn 0.4s ease-out;
-    }
-</style>
 {% endblock %}

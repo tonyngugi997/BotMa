@@ -1,0 +1,6 @@
+2026-04-11 15:42:54,258 - INFO - Logger is now writing to file!
+2026-04-11 15:46:26,386 - __main__ - DEBUG - This is DEBUG - for detailed troubleshooting
+2026-04-11 15:46:26,386 - __main__ - INFO - This is INFO - for normal operations
+2026-04-11 15:46:26,387 - __main__ - WARNING - This is WARNING - for something unexpected but not broken
+2026-04-11 15:46:26,387 - __main__ - ERROR - This is ERROR - for something that failed
+2026-04-11 15:46:26,387 - __main__ - CRITICAL - This is CRITICAL - for catastrophic failures
