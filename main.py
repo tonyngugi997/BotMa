@@ -25,6 +25,14 @@ print(f"Unread count: {len(message_ids[0].split())}")
 read_count = gmail.count_read_emails()
 print(f"Read emails in inbox: {read_count}")
 
+labels = ['EmailAgent/SECURITY', 'EmailAgent/PROMOTION', 'EmailAgent/PERSONAL', 
+            'EmailAgent/BUSINESS', 'EmailAgent/OTHER', 'EmailAgent/SOCIAL']
+
+print("\n--- Label Counts ---")
+for label in labels:
+    count = gmail.count_emails_in_label(label)
+    print(f"{label}: {count} emails")
+
 for email_id_bytes in message_ids[0].split():
     email_id = email_id_bytes.decode()
 
