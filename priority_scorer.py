@@ -4,7 +4,7 @@ from logger import get_logger
 
 logger = get_logger(__name__)
 
-def calculate_priority_score(subject, sender, body):
+def calculate_priority_score(subject, sender, body, has_attachments=False):
     """
     Calculate priority score for an email
     
@@ -55,5 +55,9 @@ def calculate_priority_score(subject, sender, body):
     if any(word in full_text for word in security_keywords):
         score += 40
         logger.debug(f"  +40: Security alert detected")
+
+    if has_attachments:
+        score += 10
+        logger.debug(f"  +10: Email has attachments")
     
     return min(score, 100)
