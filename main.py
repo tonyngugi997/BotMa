@@ -89,7 +89,7 @@ for email_id_bytes in message_ids[0].split():
     logger.info(f"Category: {category}")
     logger.info(f"Body preview: {body[:200]}")
     
-    save_email(email_id, sender, subject, body)
+    save_email(email_id, sender, subject, body, category, priority_score)
     gmail.mark_as_read(email_id_bytes)
     gmail.move_to_label(email_id_bytes, f'EmailAgent/{category}')
     logger.info(f"Saved, marked, and moved to {category}\n")
