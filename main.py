@@ -22,13 +22,17 @@ gmail.connection.select('inbox')
 status, message_ids = gmail.connection.search(None, 'UNSEEN')
 print(f"Unread count: {len(message_ids[0].split())}")
 
+read_count = gmail.count_read_emails()
+print(f"Read emails in inbox: {read_count}")
+
 for email_id_bytes in message_ids[0].split():
     email_id = email_id_bytes.decode()
-    
+
     if is_email_processed(email_id):
-        print(f"Skipping {email_id} - already processed")
+        print(f"Skipping {email_id} - already processed, but marking as read")
+        gmail.mark_as_read(email_id_bytes)
         continue
-    
+
     status, message_data = gmail.connection.fetch(email_id_bytes, '(RFC822)')
     print(f"Processing email_id: {email_id}")
     
