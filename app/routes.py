@@ -396,3 +396,23 @@ def get_connected_accounts():
         'is_active': acc[2],
         'created_at': acc[3]
     } for acc in accounts])
+
+
+
+@bp.route('/api/active-account')
+@login_required
+def get_active_account():
+    """Get the currently active email account for the user"""
+    account_id = session.get('active_account_id')
+    
+    if not account_id:
+        # Try to get the first account
+        conn = get_db()
+        first = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (current_user.id,)).fetchone()
+        conn.close()
+        
+        if first:
+            account_id = first[0]
+            session['active_account_id'] = account_id
+    
+    return jsonify({'account_id': account_id})
