@@ -29,7 +29,7 @@ def login():
         
         if user and check_password_hash(user.password_hash, password):
             flash('Logged in successfully.', 'success')
-            
+
             login_user(user)
             return redirect(url_for('main.dashboard'))
         else:
@@ -317,3 +317,8 @@ def get_user_stats():
         'connected_accounts': account_count,
         'member_since': user[0] if user else None
     })
+
+@bp.route('/add-email')
+@login_required
+def add_email():
+    return render_template('add_email.html')
