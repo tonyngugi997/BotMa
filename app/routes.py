@@ -7,6 +7,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
 from app.models import User
 import imaplib
+from flask import session
 
 bp = Blueprint('main', __name__)
 
@@ -371,3 +372,22 @@ def add_email():
         return redirect(url_for('main.dashboard'))
     
     return render_template('add_email.html')
+
+@bp.route('/api/connected-accounts')
+@login_required
+def get_connected_accounts():
+    conn = get_db()
+    accounts = conn.execute('''
+        SELECT id, email, is_active, created_at 
+        FROM email_accounts 
+        WHERE user_id = ?
+        ORDER BY created_at DESC
+    ''', (current_user.id,)).fetchall()
+    conn.close()
+    
+    return jsonify([{
+        'id': acc[0],
+        'email': acc[1],
+        'is_active': acc[2],
+        'created_at': acc[3]
+    } for acc in accounts])
