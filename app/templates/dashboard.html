@@ -13,6 +13,23 @@
         </div>
     </div>
 </div>
+
+<div class="glass-card" style="padding: 0.75rem 1rem; margin-bottom: 1.5rem; cursor: pointer;" id="connectedEmailsToggle">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+            <i class="fas fa-envelopes" style="color: #3b82f6;"></i>
+            <span style="font-weight: 500;">Connected Emails</span>
+            <span id="connectedCount" style="background: #1e293b; padding: 0.15rem 0.5rem; border-radius: 20px; font-size: 0.7rem;">0</span>
+        </div>
+        <div>
+            <i id="toggleIcon" class="fas fa-chevron-down" style="color: #64748b; transition: transform 0.2s;"></i>
+        </div>
+    </div>
+    <div id="connectedEmailsList" style="display: none; margin-top: 0.75rem; border-top: 1px solid #1e293b; padding-top: 0.75rem;">
+        <span style="color: #64748b;">Loading...</span>
+    </div>
+</div>
+
 <div class="animate-in">
     <div style="margin-bottom: 2rem;">
         <h1 style="font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #fff, #94a3b8); -webkit-background-clip: text; background-clip: text; color: transparent;">Dashboard</h1>
@@ -204,4 +221,79 @@
     }
     loadWeeklyTrend();
     </script>
+
+<script>
+// Load connected accounts (collapsible)
+let accountsLoaded = false;
+
+async function loadConnectedAccounts() {
+    try {
+        const res = await fetch('/api/connected-accounts');
+        const accounts = await res.json();
+        
+        // Update count badge
+        const countSpan = document.getElementById('connectedCount');
+        if (countSpan) countSpan.innerText = accounts.length;
+        
+        const container = document.getElementById('connectedEmailsList');
+        
+        if (accounts.length === 0) {
+            container.innerHTML = '<span style="color: #64748b; font-size: 0.85rem;">No emails connected. Click + Add Another to connect Gmail.</span>';
+            return;
+        }
+        
+        container.innerHTML = accounts.map(acc => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid #1e293b;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-envelope" style="color: #3b82f6; font-size: 0.8rem;"></i>
+                    <span style="font-size: 0.85rem;">${escapeHtml(acc.email)}</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    ${acc.is_active ? '<span style="background: #22c55e; width: 6px; height: 6px; border-radius: 50%;"></span>' : ''}
+                    <span style="font-size: 0.65rem; color: #64748b;">${new Date(acc.created_at).toLocaleDateString()}</span>
+                </div>
+            </div>
+        `).join('');
+        
+        accountsLoaded = true;
+    } catch (e) {
+        console.error('Failed to load accounts:', e);
+        const container = document.getElementById('connectedEmailsList');
+        if (container) container.innerHTML = '<span style="color: #ef4444; font-size: 0.85rem;">Failed to load</span>';
+    }
+}
+
+// Toggle functionality
+const toggleSection = document.getElementById('connectedEmailsToggle');
+const listContainer = document.getElementById('connectedEmailsList');
+const toggleIcon = document.getElementById('toggleIcon');
+
+if (toggleSection) {
+    toggleSection.addEventListener('click', () => {
+        if (!accountsLoaded) {
+            loadConnectedAccounts();
+        }
+        
+        if (listContainer.style.display === 'none' || listContainer.style.display === '') {
+            listContainer.style.display = 'block';
+            toggleIcon.style.transform = 'rotate(180deg)';
+        } else {
+            listContainer.style.display = 'none';
+            toggleIcon.style.transform = 'rotate(0deg)';
+        }
+    });
+}
+
+async function loadConnectedCount() {
+    try {
+        const res = await fetch('/api/connected-accounts');
+        const accounts = await res.json();
+        const countSpan = document.getElementById('connectedCount');
+        if (countSpan) countSpan.innerText = accounts.length;
+    } catch (e) {}
+}
+
+loadConnectedCount();
+    
+</script>
 {% endblock %}
