@@ -8,6 +8,10 @@ from storage import init_database, save_email, is_email_processed
 from gmail_client import GmailClient
 from categorizer import categorize
 
+from logger import get_logger  
+
+logger = get_logger(__name__)
+
 load_dotenv()
 init_database()
 
