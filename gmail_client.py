@@ -36,3 +36,11 @@ class GmailClient:
     
     def mark_as_read(self, email_id):
         self.connection.store(email_id, '+FLAGS', '\\Seen')
+
+    def count_read_emails(self):
+        """Count read emails in inbox"""
+        self.connection.select('inbox')
+        status, message_ids = self.connection.search(None, 'SEEN')
+        if status != 'OK':
+            return 0
+        return len(message_ids[0].split()) if message_ids[0] else 0
