@@ -44,3 +44,15 @@ class GmailClient:
         if status != 'OK':
             return 0
         return len(message_ids[0].split()) if message_ids[0] else 0
+    
+    def count_emails_in_label(self, label_name):
+        """Count total emails in a specific label"""
+        # Select the label (Gmail uses label names as folders)
+        try:
+            self.connection.select(f'"{label_name}"')
+            status, message_ids = self.connection.search(None, 'ALL')
+            if status != 'OK':
+                return 0
+            return len(message_ids[0].split()) if message_ids[0] else 0
+        except:
+            return 0
