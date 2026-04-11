@@ -317,24 +317,56 @@ def get_user_stats():
         'connected_accounts': account_count,
         'member_since': user[0] if user else None
     })
-
 @bp.route('/add-email', methods=['GET', 'POST'])
 @login_required
 def add_email():
     if request.method == 'POST':
         email = request.form.get('email')
         app_password = request.form.get('app_password')
+        imap_server = request.form.get('imap_server', 'imap.gmail.com')
+        
+        # TEST THE CONNECTION FIRST
+        import imaplib
+        
+        try:
+            # Attempt to connect to Gmail
+            test_connection = imaplib.IMAP4_SSL(imap_server)
+            test_connection.login(email, app_password)
+            test_connection.logout()
+            print(f"✅ Connection successful for {email}")
+            
+        except imaplib.IMAP4.error as e:
+            error_msg = str(e).lower()
+            if "authentication failed" in error_msg or "invalid credentials" in error_msg:
+                flash(f'❌ Authentication failed for {email}. Check your email and app password.', 'error')
+            else:
+                flash(f'❌ Could not connect to {email}: {str(e)}', 'error')
+            return redirect(url_for('main.add_email'))
+        except Exception as e:
+            flash(f'❌ Connection error: {str(e)}', 'error')
+            return redirect(url_for('main.add_email'))
+        
+        # If connection succeeds, save to database
+        conn = get_db()
+        
+        # Check if already exists
+        existing = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? AND email = ?', 
+                                (current_user.id, email)).fetchone()
+        
+        if existing:
+            flash(f'⚠️ {email} is already connected', 'warning')
+            conn.close()
+            return redirect(url_for('main.dashboard'))
         
         # Save to database
-        conn = get_db()
         conn.execute('''
-            INSERT INTO email_accounts (user_id, email, app_password_encrypted, imap_server)
-            VALUES (?, ?, ?, ?)
-        ''', (current_user.id, email, app_password, 'imap.gmail.com'))
+            INSERT INTO email_accounts (user_id, email, app_password_encrypted, imap_server, is_active)
+            VALUES (?, ?, ?, ?, 1)
+        ''', (current_user.id, email, app_password, imap_server))
         conn.commit()
         conn.close()
         
-        flash(f'Successfully connected {email}!', 'success')
+        flash(f'✅ Successfully connected and verified {email}!', 'success')
         return redirect(url_for('main.dashboard'))
     
     return render_template('add_email.html')
