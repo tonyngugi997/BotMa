@@ -527,18 +527,23 @@
                         <div class="dropdown-item" id="exportData">Export data</div>
                     </div>
                 </div>
-
-                <!-- User with dropdown -->
+              <!-- User with dropdown -->
                 <div class="icon-btn">
                     <i class="far fa-user-circle"></i>
                     <span class="tooltip-text">Account</span>
                     <div class="dropdown-menu" id="userDropdown">
-                        <div class="dropdown-item" id="profileStats">My stats</div>
+                        <div class="dropdown-item" style="font-weight: 600; border-bottom: 1px solid #334155;">
+                            {% if current_user.is_authenticated %}
+                                👤 {{ current_user.username }}
+                            {% else %}
+                                Guest
+                            {% endif %}
+                        </div>
+                        <div class="dropdown-item" id="profileStats">My Stats</div>
                         <div class="dropdown-divider"></div>
-                        <div class="dropdown-item" id="signUp">Sign up</div>
-                        <div class="dropdown-item" id="signIn">Sign in</div>
-                        <div class="dropdown-divider"></div>
-                        <div class="dropdown-item" id="logOut" style="color: #f87171;">Logout</div>
+                        <div class="dropdown-item" id="logoutBtn" style="color: #f87171;">
+                            <i class="fas fa-sign-out-alt"></i> Logout
+                        </div>
                     </div>
                 </div>
             </div>
@@ -748,28 +753,37 @@
         showModal('Export', 'Export started. Check your downloads folder.');
     });
 
-    // User dropdown
     document.getElementById('profileStats')?.addEventListener('click', async () => {
-        const res = await fetch('/api/stats');
-        const stats = await res.json();
-        showModal('Your Stats', `
-            <div style="display: flex; flex-direction: column; gap: 0.8rem;">
-                <div>📧 Total emails: ${stats.total_emails || 0}</div>
-                <div>👥 Unique senders: ${stats.unique_senders || 0}</div>
-                <div>📅 Last 7 days: ${stats.last_7_days || 0}</div>
-                <div>🕒 Today: ${stats.today_count || 0}</div>
-            </div>
-        `);
-    });
+        try {
+            const res = await fetch('/api/user-stats');
+            const stats = await res.json();
+            showModal('My Stats', `
+                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                    <div style="background: #1e293b; border-radius: 12px; padding: 1rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">👤 Account</div>
+                        <div>Username: <strong>${escapeHtml(stats.username)}</strong></div>
+                        <div>Member since: ${new Date(stats.member_since).toLocaleDateString()}</div>
+                    </div>
+                    <div style="background: #1e293b; border-radius: 12px; padding: 1rem;">
+                        <div style="font-weight: 600; margin-bottom: 0.5rem;">📧 Email Activity</div>
+                        <div>Total emails processed: <strong>${stats.total_emails}</strong></div>
+                        <div>Connected accounts: <strong>${stats.connected_accounts}</strong></div>
+                    </div>
+                </div>
+            `);
+        } catch (e) {
+            showModal('My Stats', 'Could not load stats');
+        }
+});
     document.getElementById('signUp')?.addEventListener('click', () => {
         showModal('Sign Up', 'Cloud sync and multi-device support coming soon.');
     });
     document.getElementById('signIn')?.addEventListener('click', () => {
         showModal('Sign In', 'You are currently using a local session. Cloud sync coming soon.');
     });
-    document.getElementById('logOut')?.addEventListener('click', () => {
-        if (confirm('Log out of EmailAgent?')) {
-            alert('Logged out. Restart the app to continue.');
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        if (confirm('Are you sure you want to logout?')) {
+            window.location.href = '/logout';
         }
     });
 </script>

@@ -291,3 +291,27 @@ def get_hourly_distribution():
         count = next((row[1] for row in hourly if row[0] == hour), 0)
         result.append({'hour': hour, 'count': count})
     return jsonify(result)
+
+@bp.route('/api/user-stats')
+@login_required
+def get_user_stats():
+    conn = get_db()
+    
+    total_emails = conn.execute('''
+        SELECT COUNT(*) FROM processed_emails pe
+        JOIN email_accounts ea ON pe.account_id = ea.id
+        WHERE ea.user_id = ?
+    ''', (current_user.id,)).fetchone()[0]
+    
+    account_count = conn.execute('SELECT COUNT(*) FROM email_accounts WHERE user_id = ?', (current_user.id,)).fetchone()[0]
+    
+    user = conn.execute('SELECT created_at FROM users WHERE id = ?', (current_user.id,)).fetchone()
+    
+    conn.close()
+    
+    return jsonify({
+        'username': current_user.username,
+        'total_emails': total_emails,
+        'connected_accounts': account_count,
+        'member_since': user[0] if user else None
+    })
