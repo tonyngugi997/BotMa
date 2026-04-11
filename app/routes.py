@@ -2,6 +2,11 @@ from flask import Blueprint, render_template, request, jsonify
 import sqlite3
 from datetime import datetime, timedelta
 
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, flash
+from flask_login import login_user, logout_user, login_required, current_user
+from werkzeug.security import generate_password_hash, check_password_hash
+from app.models import User
+
 bp = Blueprint('main', __name__)
 
 def get_db():
@@ -9,9 +14,66 @@ def get_db():
     conn.row_factory = sqlite3.Row
     return conn
 
+
+
+
+
 @bp.route('/')
 def dashboard():
     return render_template('dashboard.html')
+
+
+
+@bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        user = User.find_by_username(username)
+        
+        if user and check_password_hash(user.password_hash, password):
+            login_user(user)
+            return redirect(url_for('main.dashboard'))
+        else:
+            return render_template('login.html', error='Invalid username or password')
+    
+    return render_template('login.html')
+
+@bp.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        if password != confirm_password:
+            return render_template('signup.html', error='Passwords do not match')
+        
+        if len(password) < 6:
+            return render_template('signup.html', error='Password must be at least 6 characters')
+        
+        existing_user = User.find_by_username(username)
+        if existing_user:
+            return render_template('signup.html', error='Username already exists')
+        
+        password_hash = generate_password_hash(password)
+        user_id = User.create(username, password_hash)
+        
+        # Log the user in after signup
+        user = User.get(user_id)
+        login_user(user)
+        
+        return redirect(url_for('main.dashboard'))
+    
+    return render_template('signup.html')
+
+@bp.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('main.login'))
+
 
 @bp.route('/api/stats')
 def get_stats():
