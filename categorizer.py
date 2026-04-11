@@ -13,4 +13,7 @@ def categorize(subject, sender, body):
     if any(word in sender.lower() for word in ['gmail', 'yahoo', 'outlook']):
         return "PERSONAL"
     
+    if any(word in sender.lower() for word in ['reddit', 'twitter', 'facebook', 'instagram', 'linkedin', 'tiktok', 'discord', 'telegram']):
+        return "SOCIAL"
+    
     return "OTHER"
