@@ -64,6 +64,7 @@ def get_emails():
     category = request.args.get('category', '')
     search = request.args.get('search', '')
     sort = request.args.get('sort', 'desc')
+    priority = request.args.get('priority', '')  # 'high', 'medium', 'low'
     
     offset = (page - 1) * per_page
     
@@ -76,21 +77,42 @@ def get_emails():
         query += ' AND category = ?'
         params.append(category)
     
+    # Priority filter
+    if priority == 'high':
+        query += ' AND priority_score >= 70'
+    elif priority == 'medium':
+        query += ' AND priority_score >= 40 AND priority_score < 70'
+    elif priority == 'low':
+        query += ' AND priority_score < 40'
+    
     if search:
         query += ' AND (sender LIKE ? OR subject LIKE ? OR body_preview LIKE ?)'
         params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
     
-    query += f' ORDER BY processed_at {sort} LIMIT ? OFFSET ?'
+    if priority:
+        query += f' ORDER BY priority_score DESC, processed_at {sort} LIMIT ? OFFSET ?'
+    else:
+        query += f' ORDER BY processed_at {sort} LIMIT ? OFFSET ?'
+    
     params.extend([per_page, offset])
     
     emails = conn.execute(query, params).fetchall()
     
-    # Count total
+    # Count total with same filters
     count_query = 'SELECT COUNT(*) FROM processed_emails WHERE 1=1'
     count_params = []
+    
     if category:
         count_query += ' AND category = ?'
         count_params.append(category)
+    
+    if priority == 'high':
+        count_query += ' AND priority_score >= 70'
+    elif priority == 'medium':
+        count_query += ' AND priority_score >= 40 AND priority_score < 70'
+    elif priority == 'low':
+        count_query += ' AND priority_score < 40'
+    
     if search:
         count_query += ' AND (sender LIKE ? OR subject LIKE ? OR body_preview LIKE ?)'
         count_params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
@@ -104,7 +126,7 @@ def get_emails():
         'page': page,
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page if total > 0 else 1
-    })      
+    })    
 
 
 @bp.route('/analytics')
