@@ -9,16 +9,19 @@ def setup_logger():
         print(f"Created {log_dir} folder")
     
     logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s - %(levelname)s - %(message)s',
+        level=logging.DEBUG,  
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         handlers=[
-            logging.FileHandler('logs/email_agent.log'),  
-            logging.StreamHandler()                      
+            logging.FileHandler('logs/email_agent.log'),
+            logging.StreamHandler()
         ]
     )
     return logging.getLogger(__name__)
 
-# Create the logger instance
 logger = setup_logger()
 
-logger.info("Logger is now writing to file!")
+logger.debug("This is DEBUG - for detailed troubleshooting")
+logger.info("This is INFO - for normal operations")
+logger.warning("This is WARNING - for something unexpected but not broken")
+logger.error("This is ERROR - for something that failed")
+logger.critical("This is CRITICAL - for catastrophic failures")
