@@ -14,8 +14,8 @@
     </div>
 </div>
 
-<div class="glass-card" style="padding: 0.75rem 1rem; margin-bottom: 1.5rem; cursor: pointer;" id="connectedEmailsToggle">
-    <div style="display: flex; justify-content: space-between; align-items: center;">
+<div class="glass-card" style="padding: 0.75rem 1rem; margin-bottom: 1.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; cursor: pointer;" id="connectedEmailsToggle">
         <div style="display: flex; align-items: center; gap: 0.75rem;">
             <i class="fas fa-envelopes" style="color: #3b82f6;"></i>
             <span style="font-weight: 500;">Connected Emails</span>
@@ -223,11 +223,17 @@
     </script>
 
 <script>
-// Load connected accounts (collapsible)
+// Load connected accounts with click functionality
 let accountsLoaded = false;
+let currentActiveAccountId = null;
 
 async function loadConnectedAccounts() {
     try {
+        // First, get the currently active account
+        const activeRes = await fetch('/api/active-account');
+        const activeData = await activeRes.json();
+        currentActiveAccountId = activeData.account_id;
+        
         const res = await fetch('/api/connected-accounts');
         const accounts = await res.json();
         
@@ -242,18 +248,58 @@ async function loadConnectedAccounts() {
             return;
         }
         
-        container.innerHTML = accounts.map(acc => `
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid #1e293b;">
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <i class="fas fa-envelope" style="color: #3b82f6; font-size: 0.8rem;"></i>
-                    <span style="font-size: 0.85rem;">${escapeHtml(acc.email)}</span>
+        container.innerHTML = accounts.map(acc => {
+            const isActive = (currentActiveAccountId == acc.id);
+            const activeBadge = isActive ? '<span style="background: #3b82f6; font-size: 0.6rem; padding: 0.1rem 0.4rem; border-radius: 20px; margin-left: 0.5rem;">Active</span>' : '';
+            const activeBg = isActive ? 'background: #1e293b; border-left: 3px solid #3b82f6;' : '';
+            
+            return `
+                <div class="account-item" data-account-id="${acc.id}" data-account-email="${escapeHtml(acc.email)}" style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; padding-left: 0.5rem; border-bottom: 1px solid #1e293b; cursor: pointer; transition: all 0.2s; ${activeBg}">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-envelope" style="color: #3b82f6; font-size: 0.8rem;"></i>
+                        <span style="font-size: 0.85rem;">${escapeHtml(acc.email)}</span>
+                        ${activeBadge}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        ${acc.is_active ? '<span style="background: #22c55e; width: 6px; height: 6px; border-radius: 50%;"></span>' : ''}
+                        <span style="font-size: 0.65rem; color: #64748b;">${new Date(acc.created_at).toLocaleDateString()}</span>
+                    </div>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    ${acc.is_active ? '<span style="background: #22c55e; width: 6px; height: 6px; border-radius: 50%;"></span>' : ''}
-                    <span style="font-size: 0.65rem; color: #64748b;">${new Date(acc.created_at).toLocaleDateString()}</span>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
+        
+        // Add click handlers to each account
+        document.querySelectorAll('.account-item').forEach(item => {
+            item.addEventListener('click', async (e) => {
+                e.stopPropagation();
+                const accountId = item.dataset.accountId;
+                const accountEmail = item.dataset.accountEmail;
+                
+                // Show visual feedback
+                item.style.opacity = '0.5';
+                
+                try {
+                    const response = await fetch('/api/switch-account', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ account_id: accountId })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        // Reload page to show new account data
+                        window.location.reload();
+                    } else {
+                        item.style.opacity = '1';
+                        alert('Failed to switch account');
+                    }
+                } catch (error) {
+                    item.style.opacity = '1';
+                    alert('Error switching account');
+                }
+            });
+        });
         
         accountsLoaded = true;
     } catch (e) {
@@ -269,21 +315,22 @@ const listContainer = document.getElementById('connectedEmailsList');
 const toggleIcon = document.getElementById('toggleIcon');
 
 if (toggleSection) {
-    toggleSection.addEventListener('click', () => {
+    toggleSection.addEventListener('click', async () => {
         if (!accountsLoaded) {
-            loadConnectedAccounts();
+            await loadConnectedAccounts();
         }
         
         if (listContainer.style.display === 'none' || listContainer.style.display === '') {
             listContainer.style.display = 'block';
-            toggleIcon.style.transform = 'rotate(180deg)';
+            if (toggleIcon) toggleIcon.style.transform = 'rotate(180deg)';
         } else {
             listContainer.style.display = 'none';
-            toggleIcon.style.transform = 'rotate(0deg)';
+            if (toggleIcon) toggleIcon.style.transform = 'rotate(0deg)';
         }
     });
 }
 
+// Load just the count badge on page load (without opening list)
 async function loadConnectedCount() {
     try {
         const res = await fetch('/api/connected-accounts');
@@ -293,7 +340,18 @@ async function loadConnectedCount() {
     } catch (e) {}
 }
 
+// Load count on page load
 loadConnectedCount();
-    
+
+// Helper function to escape HTML
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
 </script>
 {% endblock %}
