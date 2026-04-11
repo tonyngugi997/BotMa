@@ -318,7 +318,23 @@ def get_user_stats():
         'member_since': user[0] if user else None
     })
 
-@bp.route('/add-email')
+@bp.route('/add-email', methods=['GET', 'POST'])
 @login_required
 def add_email():
+    if request.method == 'POST':
+        email = request.form.get('email')
+        app_password = request.form.get('app_password')
+        
+        # Save to database
+        conn = get_db()
+        conn.execute('''
+            INSERT INTO email_accounts (user_id, email, app_password_encrypted, imap_server)
+            VALUES (?, ?, ?, ?)
+        ''', (current_user.id, email, app_password, 'imap.gmail.com'))
+        conn.commit()
+        conn.close()
+        
+        flash(f'Successfully connected {email}!', 'success')
+        return redirect(url_for('main.dashboard'))
+    
     return render_template('add_email.html')
