@@ -416,3 +416,34 @@ def get_active_account():
             session['active_account_id'] = account_id
     
     return jsonify({'account_id': account_id})
+
+
+@bp.route('/api/switch-account', methods=['POST'])
+@login_required
+def switch_account():
+    """Switch the active email account for the current user"""
+    data = request.get_json()
+    account_id = data.get('account_id')
+    
+    if not account_id:
+        return jsonify({'error': 'No account ID provided'}), 400
+    
+    # Verify the account belongs to the current user
+    conn = get_db()
+    account = conn.execute('''
+        SELECT id, email FROM email_accounts 
+        WHERE id = ? AND user_id = ?
+    ''', (account_id, current_user.id)).fetchone()
+    conn.close()
+    
+    if not account:
+        return jsonify({'error': 'Account not found or access denied'}), 404
+    
+    # Save to session
+    session['active_account_id'] = account_id
+    
+    return jsonify({
+        'success': True,
+        'account_id': account_id,
+        'email': account[1]
+    })
