@@ -1,58 +1,90 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div>
+<div class="animate-fade-in">
     <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-800">Analytics</h1>
+        <h1 class="text-3xl font-bold text-gray-800">📊 Analytics</h1>
         <p class="text-gray-500 mt-1">Deep insights into your email patterns</p>
     </div>
 
     <!-- Time Range Selector -->
-    <div class="bg-white rounded-xl shadow-sm p-4 mb-6">
-        <div class="flex gap-4">
-            <button onclick="setRange('7d')" class="range-btn px-4 py-2 rounded-lg bg-blue-600 text-white">Last 7 Days</button>
-            <button onclick="setRange('30d')" class="range-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700">Last 30 Days</button>
-            <button onclick="setRange('90d')" class="range-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700">Last 90 Days</button>
-            <button onclick="setRange('all')" class="range-btn px-4 py-2 rounded-lg bg-gray-200 text-gray-700">All Time</button>
+    <div class="bg-white rounded-2xl shadow-lg p-4 mb-8">
+        <div class="flex flex-wrap gap-3">
+            <button data-range="7d" class="range-btn px-5 py-2 rounded-xl bg-blue-600 text-white shadow-md hover:shadow-lg transition-all">Last 7 Days</button>
+            <button data-range="30d" class="range-btn px-5 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all">Last 30 Days</button>
+            <button data-range="90d" class="range-btn px-5 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all">Last 90 Days</button>
+            <button data-range="all" class="range-btn px-5 py-2 rounded-xl bg-gray-200 text-gray-700 hover:bg-gray-300 transition-all">All Time</button>
         </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8" id="statsCards">
+        <div class="bg-white rounded-2xl shadow-lg p-6 text-center"><i class="fas fa-spinner fa-spin"></i> Loading...</div>
     </div>
 
     <!-- Charts Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Daily Email Volume</h3>
-            <canvas id="dailyChart" height="300"></canvas>
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-chart-line text-blue-500 mr-2"></i>Daily Email Volume</h3>
+            <canvas id="dailyChart" height="250"></canvas>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Category Distribution</h3>
-            <canvas id="categoryPieChart" height="300"></canvas>
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-chart-pie text-purple-500 mr-2"></i>Category Distribution</h3>
+            <canvas id="categoryChart" height="250"></canvas>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Top Senders</h3>
-            <canvas id="topSendersChart" height="300"></canvas>
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-users text-green-500 mr-2"></i>Top Senders</h3>
+            <canvas id="sendersChart" height="250"></canvas>
         </div>
-
-        <div class="bg-white rounded-xl shadow-sm p-6">
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Hourly Activity</h3>
-            <canvas id="hourlyChart" height="300"></canvas>
+        <div class="bg-white rounded-2xl shadow-lg p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-clock text-orange-500 mr-2"></i>Hourly Activity</h3>
+            <canvas id="hourlyChart" height="250"></canvas>
         </div>
     </div>
 </div>
 
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
     let currentRange = '30d';
-    let dailyChart, categoryPieChart, topSendersChart, hourlyChart;
+    let dailyChart, categoryChart, sendersChart, hourlyChart;
 
     async function loadAnalytics() {
         const response = await fetch(`/api/analytics?range=${currentRange}`);
         const data = await response.json();
         
-        // Update daily chart
+        // Update stats cards
+        document.getElementById('statsCards').innerHTML = `
+            <div class="bg-white rounded-2xl shadow-lg p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-blue-600">${data.total_emails}</div>
+                <div class="text-gray-500 text-sm mt-1">Total Emails</div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-green-600">${data.unique_senders}</div>
+                <div class="text-gray-500 text-sm mt-1">Unique Senders</div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-purple-600">${Object.keys(data.categories).length}</div>
+                <div class="text-gray-500 text-sm mt-1">Categories</div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6 text-center transform hover:scale-105 transition-all">
+                <div class="text-3xl font-bold text-orange-600">${data.daily_avg || 0}</div>
+                <div class="text-gray-500 text-sm mt-1">Daily Average</div>
+            </div>
+        `;
+        
+        // Daily chart
         if (dailyChart) dailyChart.destroy();
-        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-        dailyChart = new Chart(dailyCtx, {
+        dailyChart = new Chart(document.getElementById('dailyChart'), {
             type: 'line',
             data: {
                 labels: data.daily.map(d => d.date),
@@ -65,44 +97,41 @@
                     fill: true
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: true }
+            options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'top' } } }
         });
         
-        // Update category pie chart
-        if (categoryPieChart) categoryPieChart.destroy();
-        const pieCtx = document.getElementById('categoryPieChart').getContext('2d');
-        categoryPieChart = new Chart(pieCtx, {
+        // Category pie chart
+        if (categoryChart) categoryChart.destroy();
+        categoryChart = new Chart(document.getElementById('categoryChart'), {
             type: 'pie',
             data: {
                 labels: Object.keys(data.categories),
                 datasets: [{
                     data: Object.values(data.categories),
-                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#6b7280']
+                    backgroundColor: ['#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#6b7280']
                 }]
             },
             options: { responsive: true, plugins: { legend: { position: 'right' } } }
         });
         
-        // Update top senders chart
-        if (topSendersChart) topSendersChart.destroy();
-        const sendersCtx = document.getElementById('topSendersChart').getContext('2d');
-        topSendersChart = new Chart(sendersCtx, {
+        // Top senders bar chart (horizontal)
+        if (sendersChart) sendersChart.destroy();
+        sendersChart = new Chart(document.getElementById('sendersChart'), {
             type: 'bar',
             data: {
-                labels: data.top_senders.map(s => s.sender.substring(0, 20)),
+                labels: data.top_senders.map(s => s.sender.length > 20 ? s.sender.substring(0,20)+'...' : s.sender),
                 datasets: [{
                     label: 'Emails',
                     data: data.top_senders.map(s => s.count),
                     backgroundColor: '#10b981'
                 }]
             },
-            options: { responsive: true, indexAxis: 'y' }
+            options: { responsive: true, indexAxis: 'y', plugins: { legend: { position: 'top' } } }
         });
         
-        // Update hourly chart
+        // Hourly chart
         if (hourlyChart) hourlyChart.destroy();
-        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
-        hourlyChart = new Chart(hourlyCtx, {
+        hourlyChart = new Chart(document.getElementById('hourlyChart'), {
             type: 'bar',
             data: {
                 labels: data.hourly.map(h => `${h.hour}:00`),
@@ -112,20 +141,22 @@
                     backgroundColor: '#8b5cf6'
                 }]
             },
-            options: { responsive: true }
+            options: { responsive: true, plugins: { legend: { position: 'top' } } }
         });
     }
 
-    function setRange(range) {
-        currentRange = range;
-        document.querySelectorAll('.range-btn').forEach(btn => {
-            btn.classList.remove('bg-blue-600', 'text-white');
-            btn.classList.add('bg-gray-200', 'text-gray-700');
+    document.querySelectorAll('.range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            currentRange = btn.dataset.range;
+            document.querySelectorAll('.range-btn').forEach(b => {
+                b.classList.remove('bg-blue-600', 'text-white');
+                b.classList.add('bg-gray-200', 'text-gray-700');
+            });
+            btn.classList.remove('bg-gray-200', 'text-gray-700');
+            btn.classList.add('bg-blue-600', 'text-white');
+            loadAnalytics();
         });
-        event.target.classList.remove('bg-gray-200', 'text-gray-700');
-        event.target.classList.add('bg-blue-600', 'text-white');
-        loadAnalytics();
-    }
+    });
 
     loadAnalytics();
 </script>
