@@ -2,6 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 import sqlite3
 from datetime import datetime, timedelta
 
+
 bp = Blueprint('main', __name__)
 
 @bp.route('/')
@@ -59,9 +60,10 @@ def get_categories():
 @bp.route('/api/emails')
 def get_emails():
     page = request.args.get('page', 1, type=int)
-    per_page = request.args.get('per_page', 50, type=int)
+    per_page = request.args.get('per_page', 20, type=int)
     category = request.args.get('category', '')
     search = request.args.get('search', '')
+    sort = request.args.get('sort', 'desc')
     
     offset = (page - 1) * per_page
     
@@ -75,26 +77,25 @@ def get_emails():
         params.append(category)
     
     if search:
-        query += ' AND (sender LIKE ? OR subject LIKE ?)'
-        params.extend([f'%{search}%', f'%{search}%'])
+        query += ' AND (sender LIKE ? OR subject LIKE ? OR body_preview LIKE ?)'
+        params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
     
-    query += ' ORDER BY processed_at DESC LIMIT ? OFFSET ?'
+    query += f' ORDER BY processed_at {sort} LIMIT ? OFFSET ?'
     params.extend([per_page, offset])
     
     emails = conn.execute(query, params).fetchall()
     
-    # Get total count
+    # Count total
     count_query = 'SELECT COUNT(*) FROM processed_emails WHERE 1=1'
     count_params = []
     if category:
         count_query += ' AND category = ?'
         count_params.append(category)
     if search:
-        count_query += ' AND (sender LIKE ? OR subject LIKE ?)'
-        count_params.extend([f'%{search}%', f'%{search}%'])
+        count_query += ' AND (sender LIKE ? OR subject LIKE ? OR body_preview LIKE ?)'
+        count_params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
     
     total = conn.execute(count_query, count_params).fetchone()[0]
-    
     conn.close()
     
     return jsonify({
@@ -102,13 +103,8 @@ def get_emails():
         'total': total,
         'page': page,
         'per_page': per_page,
-        'total_pages': (total + per_page - 1) // per_page
+        'total_pages': (total + per_page - 1) // per_page if total > 0 else 1
     })
-
-
-@bp.route('/emails')
-def emails():
-    return render_template('emails.html')
 
 
 @bp.route('/analytics')
