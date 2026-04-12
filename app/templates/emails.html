@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="animate-fade-in">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">📧 All Emails</h1>
+        <p class="text-gray-500 mt-1">Search, filter, and manage your processed emails</p>
+    </div>
+
+    <!-- Advanced Filters -->
+    <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 transition-all duration-300 hover:shadow-xl">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="relative">
+                <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                <input type="text" id="searchInput" placeholder="Search sender or subject..." 
+                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+            </div>
+            <div>
+                <select id="categoryFilter" class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500">
+                    <option value="">All Categories</option>
+                    <option value="SECURITY">🔒 Security</option>
+                    <option value="PROMOTION">🎯 Promotion</option>
+                    <option value="PERSONAL">👤 Personal</option>
+                    <option value="BUSINESS">💼 Business</option>
+                    <option value="SOCIAL">📱 Social</option>
+                    <option value="OTHER">📁 Other</option>
+                </select>
+            </div>
+            <div>
+                <select id="sortSelect" class="w-full px-4 py-2 border border-gray-300 rounded-xl">
+                    <option value="desc">Newest First</option>
+                    <option value="asc">Oldest First</option>
+                </select>
+            </div>
+            <div>
+                <button id="searchBtn" class="w-full bg-gradient-to-r from-blue-500 to-blue-600 text-white px-6 py-2 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 transform hover:scale-105">
+                    <i class="fas fa-search mr-2"></i>Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Count and View Toggle -->
+    <div class="flex justify-between items-center mb-4">
+        <div class="text-sm text-gray-500" id="resultStats"></div>
+        <div class="flex gap-2">
+            <button id="tableViewBtn" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-lg"><i class="fas fa-table"></i></button>
+            <button id="cardViewBtn" class="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg"><i class="fas fa-th-large"></i></button>
+        </div>
+    </div>
+
+    <!-- Email Table View -->
+    <div id="tableView" class="bg-white rounded-2xl shadow-lg overflow-hidden transition-all">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr class="text-left text-gray-600 text-sm">
+                        <th class="px-6 py-4">Sender</th>
+                        <th class="px-6 py-4">Subject</th>
+                        <th class="px-6 py-4">Category</th>
+                        <th class="px-6 py-4">Date</th>
+                        <th class="px-6 py-4">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="emailsTableBody">
+                    <tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i>Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div id="pagination" class="px-6 py-4 border-t border-gray-200 flex justify-between items-center"></div>
+    </div>
+
+    <!-- Email Card View (hidden by default) -->
+    <div id="cardView" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden"></div>
+</div>
+
+<style>
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+    .email-card {
+        transition: all 0.3s ease;
+    }
+    .email-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.02);
+    }
+</style>
+
+<script>
+    let currentPage = 1;
+    let currentCategory = '';
+    let currentSearch = '';
+    let currentSort = 'desc';
+    let viewMode = 'table';
+
+    async function loadEmails() {
+        const params = new URLSearchParams({
+            page: currentPage,
+            per_page: 20,
+            category: currentCategory,
+            search: currentSearch,
+            sort: currentSort
+        });
+        
+        const response = await fetch(`/api/emails?${params}`);
+        const data = await response.json();
+        
+        document.getElementById('resultStats').innerHTML = `Showing ${data.emails.length} of ${data.total} emails`;
+        
+        if (viewMode === 'table') {
+            renderTableView(data);
+        } else {
+            renderCardView(data);
+        }
+        renderPagination(data);
+    }
+
+    function renderTableView(data) {
+        const tbody = document.getElementById('emailsTableBody');
+        if (data.emails.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center py-12 text-gray-400"><i class="fas fa-inbox text-4xl mb-2 block"></i>No emails found</td></tr>';
+            return;
+        }
+        tbody.innerHTML = data.emails.map(email => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer" onclick="window.location.href='/email/${email.email_id}'">
+                <td class="px-6 py-3 text-sm text-gray-700">${escapeHtml(email.sender.substring(0, 50))}</td>
+                <td class="px-6 py-3 text-sm text-gray-700 font-medium">${escapeHtml(email.subject.substring(0, 60))}</td>
+                <td class="px-6 py-3">${getCategoryBadge(email.category)}</td>
+                <td class="px-6 py-3 text-sm text-gray-500">${formatDate(email.processed_at)}</td>
+                <td class="px-6 py-3"><i class="fas fa-chevron-right text-gray-400"></i></td>
+            </tr>
+        `).join('');
+    }
+
+    function renderCardView(data) {
+        const container = document.getElementById('cardView');
+        if (data.emails.length === 0) {
+            container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-400"><i class="fas fa-inbox text-4xl mb-2 block"></i>No emails found</div>';
+            return;
+        }
+        container.innerHTML = data.emails.map(email => `
+            <div class="email-card bg-white rounded-2xl shadow-md p-5 cursor-pointer hover:shadow-xl transition-all" onclick="window.location.href='/email/${email.email_id}'">
+                <div class="flex justify-between items-start mb-3">
+                    ${getCategoryBadge(email.category)}
+                    <span class="text-xs text-gray-400">${formatDate(email.processed_at)}</span>
+                </div>
+                <h3 class="font-semibold text-gray-800 mb-1 line-clamp-1">${escapeHtml(email.subject)}</h3>
+                <p class="text-sm text-gray-500 mb-2">${escapeHtml(email.sender)}</p>
+                <p class="text-sm text-gray-600 line-clamp-2">${escapeHtml(email.body_preview || 'No preview')}</p>
+                <div class="mt-3 text-blue-500 text-sm"><i class="fas fa-eye"></i> View details</div>
+            </div>
+        `).join('');
+    }
+
+    function getCategoryBadge(category) {
+        const colors = {
+            'SECURITY': 'bg-red-100 text-red-700',
+            'PROMOTION': 'bg-orange-100 text-orange-700',
+            'PERSONAL': 'bg-green-100 text-green-700',
+            'BUSINESS': 'bg-blue-100 text-blue-700',
+            'SOCIAL': 'bg-purple-100 text-purple-700',
+            'OTHER': 'bg-gray-100 text-gray-700'
+        };
+        const icons = {
+            'SECURITY': '🔒',
+            'PROMOTION': '🎯',
+            'PERSONAL': '👤',
+            'BUSINESS': '💼',
+            'SOCIAL': '📱',
+            'OTHER': '📁'
+        };
+        return `<span class="px-2 py-1 text-xs rounded-full ${colors[category] || colors['OTHER']}">${icons[category] || icons['OTHER']} ${category || 'OTHER'}</span>`;
+    }
+
+    function formatDate(dateStr) {
+        const date = new Date(dateStr);
+        const now = new Date();
+        const diff = now - date;
+        if (diff < 86400000) return date.toLocaleTimeString();
+        if (diff < 604800000) return date.toLocaleDateString(undefined, { weekday: 'short' });
+        return date.toLocaleDateString();
+    }
+
+    function renderPagination(data) {
+        const container = document.getElementById('pagination');
+        if (data.total_pages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        let html = `<div class="text-sm text-gray-500">Page ${data.page} of ${data.total_pages}</div><div class="flex gap-2">`;
+        if (data.page > 1) html += `<button onclick="goToPage(${data.page - 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50"><i class="fas fa-chevron-left"></i></button>`;
+        html += `<button onclick="goToPage(${data.page + 1})" class="px-3 py-1 border rounded-lg hover:bg-gray-50"><i class="fas fa-chevron-right"></i></button>`;
+        html += `</div>`;
+        container.innerHTML = html;
+    }
+
+    function goToPage(page) {
+        currentPage = page;
+        loadEmails();
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    document.getElementById('searchBtn').addEventListener('click', () => {
+        currentSearch = document.getElementById('searchInput').value;
+        currentCategory = document.getElementById('categoryFilter').value;
+        currentSort = document.getElementById('sortSelect').value;
+        currentPage = 1;
+        loadEmails();
+    });
+
+    document.getElementById('searchInput').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') document.getElementById('searchBtn').click();
+    });
+
+    document.getElementById('tableViewBtn').addEventListener('click', () => {
+        viewMode = 'table';
+        document.getElementById('tableView').classList.remove('hidden');
+        document.getElementById('cardView').classList.add('hidden');
+        document.getElementById('tableViewBtn').classList.add('bg-blue-100', 'text-blue-700');
+        document.getElementById('cardViewBtn').classList.remove('bg-blue-100', 'text-blue-700');
+        document.getElementById('cardViewBtn').classList.add('bg-gray-100', 'text-gray-700');
+        loadEmails();
+    });
+
+    document.getElementById('cardViewBtn').addEventListener('click', () => {
+        viewMode = 'card';
+        document.getElementById('tableView').classList.add('hidden');
+        document.getElementById('cardView').classList.remove('hidden');
+        document.getElementById('cardViewBtn').classList.add('bg-blue-100', 'text-blue-700');
+        document.getElementById('tableViewBtn').classList.remove('bg-blue-100', 'text-blue-700');
+        document.getElementById('tableViewBtn').classList.add('bg-gray-100', 'text-gray-700');
+        loadEmails();
+    });
+
+    loadEmails();
+</script>
+{% endblock %}
