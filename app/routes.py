@@ -52,3 +52,53 @@ def get_categories():
     conn.close()
     
     return {row['category']: row['count'] for row in rows}
+
+
+@bp.route('/api/emails')
+def get_emails():
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 50, type=int)
+    category = request.args.get('category', '')
+    search = request.args.get('search', '')
+    
+    offset = (page - 1) * per_page
+    
+    conn = get_db()
+    
+    query = 'SELECT * FROM processed_emails WHERE 1=1'
+    params = []
+    
+    if category:
+        query += ' AND category = ?'
+        params.append(category)
+    
+    if search:
+        query += ' AND (sender LIKE ? OR subject LIKE ?)'
+        params.extend([f'%{search}%', f'%{search}%'])
+    
+    query += ' ORDER BY processed_at DESC LIMIT ? OFFSET ?'
+    params.extend([per_page, offset])
+    
+    emails = conn.execute(query, params).fetchall()
+    
+    # Get total count
+    count_query = 'SELECT COUNT(*) FROM processed_emails WHERE 1=1'
+    count_params = []
+    if category:
+        count_query += ' AND category = ?'
+        count_params.append(category)
+    if search:
+        count_query += ' AND (sender LIKE ? OR subject LIKE ?)'
+        count_params.extend([f'%{search}%', f'%{search}%'])
+    
+    total = conn.execute(count_query, count_params).fetchone()[0]
+    
+    conn.close()
+    
+    return {
+        'emails': [dict(email) for email in emails],
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': (total + per_page - 1) // per_page
+    }
