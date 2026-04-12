@@ -104,7 +104,7 @@ def get_emails():
         'page': page,
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page if total > 0 else 1
-    })
+    })      
 
 
 @bp.route('/analytics')
@@ -116,13 +116,9 @@ def analytics():
 
 @bp.route('/api/analytics')
 def get_analytics():
-    import sqlite3
-    from datetime import datetime, timedelta
-    
     range_param = request.args.get('range', '30d')
     conn = get_db()
     
-    # Determine date filter
     if range_param == '7d':
         start_date = (datetime.now() - timedelta(days=7)).isoformat()
     elif range_param == '30d':
@@ -132,7 +128,7 @@ def get_analytics():
     else:
         start_date = '2020-01-01'
     
-    # Daily volume
+    # Daily volume (last 30 days max)
     daily = conn.execute('''
         SELECT DATE(processed_at) as date, COUNT(*) as count
         FROM processed_emails
@@ -144,7 +140,7 @@ def get_analytics():
     
     # Category distribution
     categories = conn.execute('''
-        SELECT category, COUNT(*) as count
+        SELECT COALESCE(category, 'OTHER') as category, COUNT(*) as count
         FROM processed_emails
         WHERE processed_at > ?
         GROUP BY category
@@ -160,7 +156,7 @@ def get_analytics():
         LIMIT 10
     ''', (start_date,)).fetchall()
     
-    # Hourly distribution
+    # Hourly distribution (using strftime for SQLite)
     hourly = conn.execute('''
         SELECT CAST(strftime('%H', processed_at) AS INTEGER) as hour, COUNT(*) as count
         FROM processed_emails
@@ -169,29 +165,21 @@ def get_analytics():
         ORDER BY hour
     ''', (start_date,)).fetchall()
     
+    # Total and unique senders for stats
+    total_emails = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE processed_at > ?', (start_date,)).fetchone()[0]
+    unique_senders = conn.execute('SELECT COUNT(DISTINCT sender) FROM processed_emails WHERE processed_at > ?', (start_date,)).fetchone()[0]
+    
+    # Daily average (over days with data)
+    daily_avg = int(round(total_emails / max(len(daily), 1)))
+    
     conn.close()
     
     return jsonify({
-        'daily': [{'date': row[0], 'count': row[1]} for row in daily],
-        'categories': {row[0] or 'OTHER': row[1] for row in categories},
+        'daily': [{'date': row[0], 'count': row[1]} for row in daily][::-1],  # reverse to ascending
+        'categories': {row[0]: row[1] for row in categories},
         'top_senders': [{'sender': row[0], 'count': row[1]} for row in top_senders],
-        'hourly': [{'hour': row[0], 'count': row[1]} for row in hourly]
+        'hourly': [{'hour': row[0], 'count': row[1]} for row in hourly],
+        'total_emails': total_emails,
+        'unique_senders': unique_senders,
+        'daily_avg': daily_avg
     })
-
-
-
-@bp.route('/categories')
-def categories():
-    return render_template('categories.html')
-
-
-@bp.route('/email/<email_id>')
-def email_detail(email_id):
-    conn = get_db()
-    email = conn.execute('SELECT * FROM processed_emails WHERE email_id = ?', (email_id,)).fetchone()
-    conn.close()
-    
-    if not email:
-        return "Email not found", 404
-    
-    return render_template('email_detail.html', email=dict(email))
