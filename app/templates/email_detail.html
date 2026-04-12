@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+    <div class="mb-6">
+        <a href="javascript:history.back()" class="text-blue-600 hover:text-blue-700">
+            <i class="fas fa-arrow-left mr-2"></i>Back
+        </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+        <div class="p-6 border-b border-gray-200">
+            <div class="flex items-center justify-between mb-4">
+                <span class="px-3 py-1 text-sm rounded-full bg-blue-100 text-blue-700">ID: {{ email.email_id }}</span>
+                <span class="px-3 py-1 text-sm rounded-full 
+                    {% if email.category == 'SECURITY' %}bg-red-100 text-red-700
+                    {% elif email.category == 'PROMOTION' %}bg-orange-100 text-orange-700
+                    {% elif email.category == 'PERSONAL' %}bg-green-100 text-green-700
+                    {% elif email.category == 'BUSINESS' %}bg-blue-100 text-blue-700
+                    {% elif email.category == 'SOCIAL' %}bg-purple-100 text-purple-700
+                    {% else %}bg-gray-100 text-gray-700{% endif %}">
+                    {{ email.category or 'OTHER' }}
+                </span>
+            </div>
+            
+            <h1 class="text-2xl font-bold text-gray-800 mb-4">{{ email.subject }}</h1>
+            
+            <div class="space-y-2 text-gray-600">
+                <p><i class="fas fa-envelope w-6"></i> <strong>From:</strong> {{ email.sender }}</p>
+                <p><i class="fas fa-clock w-6"></i> <strong>Processed:</strong> {{ email.processed_at }}</p>
+            </div>
+        </div>
+        
+        <div class="p-6">
+            <h3 class="font-semibold text-gray-800 mb-3">Body Preview</h3>
+            <div class="bg-gray-50 rounded-lg p-4 text-gray-700 whitespace-pre-wrap">
+                {{ email.body_preview }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
