@@ -68,51 +68,76 @@ def clean_email_body(email_message):
             body_text = body_text.split(marker)[0]
     
     # Clean up whitespace
-    body_text = re.sub(r'\n\s*\n', '\n\n', body_text)  # Multiple newlines to double
-    body_text = re.sub(r'[ \t]+', ' ', body_text)       # Multiple spaces/tabs to single space
-    body_text = re.sub(r'\n[ \t]+', '\n', body_text)    # Spaces after newline
-    body_text = re.sub(r'^\s+', '', body_text, flags=re.MULTILINE)  # Leading spaces on lines
-    body_text = re.sub(r'\s+$', '', body_text, flags=re.MULTILINE)  # Trailing spaces on lines
-    body_text = re.sub(r'\n{3,}', '\n\n', body_text)    # More than 2 newlines down to 2
+    body_text = re.sub(r'\n\s*\n', '\n\n', body_text) 
+    body_text = re.sub(r'[ \t]+', ' ', body_text)       
+    body_text = re.sub(r'\n[ \t]+', '\n', body_text)    
+    body_text = re.sub(r'^\s+', '', body_text, flags=re.MULTILINE)  
+    body_text = re.sub(r'\s+$', '', body_text, flags=re.MULTILINE) 
+    body_text = re.sub(r'\n{3,}', '\n\n', body_text)    
     
     return body_text.strip()
 
-def save_attachments(email_message, email_id, save_folder="attachments"):
+def save_attachments(email_message, email_id, sender="unknown", save_folder="attachments"):
     """Save all attachments from an email to disk"""
     import os
+    
+    # Create folder if it doesn't exist
+    os.makedirs(save_folder, exist_ok=True)
     
     saved_files = []
     
     if not email_message.is_multipart():
+        print(f"  Not multipart - no attachments to save")
         return saved_files
     
     for part in email_message.walk():
         content_disposition = str(part.get("Content-Disposition"))
+        content_type = part.get_content_type()
         
-        if "attachment" not in content_disposition:
+        # Check if it's an attachment
+        is_attachment = "attachment" in content_disposition
+        
+        # Also check for inline images or non-text parts
+        if not is_attachment and content_type not in ['text/plain', 'text/html']:
+            is_attachment = True
+        
+        if not is_attachment:
             continue
         
         filename = part.get_filename()
-        if filename:
-            # Decode filename if encoded
-            from email.header import decode_header
-            decoded_filename = decode_header(filename)[0][0]
-            if isinstance(decoded_filename, bytes):
-                filename = decoded_filename.decode('utf-8', errors='replace')
+        if not filename:
+            # Generate a filename for unnamed attachments
+            filename = f"unnamed_{content_type.replace('/', '_')}"
+        
+        # Decode filename if encoded
+        from email.header import decode_header
+        decoded_filename = decode_header(filename)[0][0]
+        if isinstance(decoded_filename, bytes):
+            filename = decoded_filename.decode('utf-8', errors='replace')
+        else:
+            filename = decoded_filename
+        
+        # Clean filename
+        import re
+        filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        
+        # Full path
+        filepath = os.path.join(save_folder, f"{email_id}_{filename}")
+        
+        # Save the file
+        try:
+            file_data = part.get_payload(decode=True)
+            if file_data:
+                with open(filepath, 'wb') as f:
+                    f.write(file_data)
+                saved_files.append(filepath)
+                print(f"  📎 Saved attachment from {sender}: {filename}")
             else:
-                filename = decoded_filename
-            
-            # Clean filename 
-            import re
-            filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
-            
-            # Full path
-            filepath = os.path.join(save_folder, f"{email_id}_{filename}")
-            
-            # Save the file
-            with open(filepath, 'wb') as f:
-                f.write(part.get_payload(decode=True))
-            
-            saved_files.append(filepath)
+                print(f"  ⚠️ No data for attachment: {filename}")
+        except Exception as e:
+            print(f"  ❌ Failed to save {filename}: {e}")
+    
+    if not saved_files:
+        print(f"  No attachments found in this email")
     
     return saved_files

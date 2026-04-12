@@ -51,7 +51,7 @@ for email_id_bytes in message_ids[0].split():
     sender = email_message['From']
     body = clean_email_body(email_message)
     category = categorize(subject, sender, body)
-    saved_files = save_attachments(email_message, email_id)
+    saved_files = save_attachments(email_message, email_id, sender=sender)
     if saved_files:
         print(f"Saved {len(saved_files)} attachment(s): {saved_files}")
     
