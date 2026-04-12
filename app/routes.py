@@ -185,3 +185,15 @@ def get_analytics():
 @bp.route('/categories')
 def categories():
     return render_template('categories.html')
+
+
+@bp.route('/email/<email_id>')
+def email_detail(email_id):
+    conn = get_db()
+    email = conn.execute('SELECT * FROM processed_emails WHERE email_id = ?', (email_id,)).fetchone()
+    conn.close()
+    
+    if not email:
+        return "Email not found", 404
+    
+    return render_template('email_detail.html', email=dict(email))
