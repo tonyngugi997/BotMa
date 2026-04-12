@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Categories</h1>
+        <p class="text-gray-500 mt-1">Manage and view emails by category</p>
+    </div>
+
+    <!-- Category Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8" id="categoryCards">
+        <!-- Loaded via JS -->
+    </div>
+
+    <!-- Emails by Selected Category -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-4" id="selectedCategoryTitle">Select a category above</h3>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="border-b border-gray-200">
+                    <tr class="text-left text-gray-500 text-sm">
+                        <th class="pb-3">Sender</th>
+                        <th class="pb-3">Subject</th>
+                        <th class="pb-3">Processed</th>
+                        <th class="pb-3">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="categoryEmailsBody">
+                    <tr><td colspan="4" class="text-center py-8 text-gray-400">Select a category to view emails</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadCategories() {
+        const response = await fetch('/api/categories');
+        const data = await response.json();
+        
+        const colors = {
+            'SECURITY': 'from-red-500 to-red-600',
+            'PROMOTION': 'from-orange-500 to-orange-600',
+            'PERSONAL': 'from-green-500 to-green-600',
+            'BUSINESS': 'from-blue-500 to-blue-600',
+            'SOCIAL': 'from-purple-500 to-purple-600',
+            'OTHER': 'from-gray-500 to-gray-600'
+        };
+        
+        const icons = {
+            'SECURITY': 'fa-shield-alt',
+            'PROMOTION': 'fa-tag',
+            'PERSONAL': 'fa-user',
+            'BUSINESS': 'fa-briefcase',
+            'SOCIAL': 'fa-users',
+            'OTHER': 'fa-folder'
+        };
+        
+        const container = document.getElementById('categoryCards');
+        container.innerHTML = Object.entries(data).map(([cat, count]) => `
+            <div onclick="selectCategory('${cat}')" class="bg-white rounded-xl shadow-sm p-6 cursor-pointer hover:shadow-lg transition category-card" data-category="${cat}">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="w-12 h-12 bg-gradient-to-br ${colors[cat] || colors['OTHER']} rounded-lg flex items-center justify-center">
+                        <i class="fas ${icons[cat] || icons['OTHER']} text-white text-xl"></i>
+                    </div>
+                    <span class="text-2xl font-bold text-gray-800">${count}</span>
+                </div>
+                <h3 class="font-semibold text-gray-800">${cat}</h3>
+                <p class="text-gray-500 text-sm mt-1">${count} email${count !== 1 ? 's' : ''}</p>
+            </div>
+        `).join('');
+    }
+
+    async function selectCategory(category) {
+        // Highlight selected card
+        document.querySelectorAll('.category-card').forEach(card => {
+            card.classList.remove('ring-2', 'ring-blue-500');
+            if (card.dataset.category === category) {
+                card.classList.add('ring-2', 'ring-blue-500');
+            }
+        });
+        
+        document.getElementById('selectedCategoryTitle').textContent = `${category} Emails`;
+        
+        const response = await fetch(`/api/emails?category=${category}&per_page=20`);
+        const data = await response.json();
+        
+        const tbody = document.getElementById('categoryEmailsBody');
+        if (data.emails.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">No emails in this category</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = data.emails.map(email => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.sender.substring(0, 50))}</td>
+                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.subject.substring(0, 60))}</td>
+                <td class="py-3 text-sm text-gray-500">${new Date(email.processed_at).toLocaleDateString()}</td>
+                <td class="py-3">
+                    <a href="/email/${email.email_id}" class="text-blue-600 hover:text-blue-800 text-sm">
+                        <i class="fas fa-eye"></i> View
+                    </a>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    loadCategories();
+</script>
+{% endblock %}
