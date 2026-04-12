@@ -102,3 +102,8 @@ def get_emails():
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page
     })
+
+
+@bp.route('/emails')
+def emails():
+    return render_template('emails.html')
