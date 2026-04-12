@@ -107,3 +107,8 @@ def get_emails():
 @bp.route('/emails')
 def emails():
     return render_template('emails.html')
+
+
+@bp.route('/analytics')
+def analytics():
+    return render_template('analytics.html')
