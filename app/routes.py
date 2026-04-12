@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request
+from flask import Blueprint, render_template, request, jsonify
 
 bp = Blueprint('main', __name__)
 
@@ -27,12 +27,12 @@ def get_stats():
     
     conn.close()
     
-    return {
+    return jsonify({
         'total_emails': total,
         'unique_senders': senders,
         'last_7_days': last_week,
         'today_count': today_count
-    }
+    })
 
 
 
@@ -95,10 +95,10 @@ def get_emails():
     
     conn.close()
     
-    return {
+    return jsonify({
         'emails': [dict(email) for email in emails],
         'total': total,
         'page': page,
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page
-    }
+    })
