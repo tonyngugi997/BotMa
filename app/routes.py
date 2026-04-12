@@ -179,3 +179,9 @@ def get_analytics():
         'top_senders': [{'sender': row[0], 'count': row[1]} for row in top_senders],
         'hourly': [{'hour': row[0], 'count': row[1]} for row in hourly]
     })
+
+
+
+@bp.route('/categories')
+def categories():
+    return render_template('categories.html')
