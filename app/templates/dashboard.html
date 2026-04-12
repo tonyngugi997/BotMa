@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div>
+    <!-- Header -->
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-800">Dashboard</h1>
+        <p class="text-gray-500 mt-1">Real-time overview of your email processing</p>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-blue-100 rounded-lg">
+                    <i class="fas fa-envelope text-blue-600 text-xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-gray-800" id="totalEmails">-</span>
+            </div>
+            <h3 class="text-gray-600 text-sm font-medium">Total Emails Processed</h3>
+            <p class="text-gray-400 text-xs mt-2">All time</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-green-100 rounded-lg">
+                    <i class="fas fa-users text-green-600 text-xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-gray-800" id="uniqueSenders">-</span>
+            </div>
+            <h3 class="text-gray-600 text-sm font-medium">Unique Senders</h3>
+            <p class="text-gray-400 text-xs mt-2">Distinct contacts</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-purple-100 rounded-lg">
+                    <i class="fas fa-calendar-week text-purple-600 text-xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-gray-800" id="last7Days">-</span>
+            </div>
+            <h3 class="text-gray-600 text-sm font-medium">Last 7 Days</h3>
+            <p class="text-gray-400 text-xs mt-2">Recent activity</p>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6 stat-card">
+            <div class="flex items-center justify-between mb-4">
+                <div class="p-3 bg-orange-100 rounded-lg">
+                    <i class="fas fa-clock text-orange-600 text-xl"></i>
+                </div>
+                <span class="text-3xl font-bold text-gray-800" id="todayCount">-</span>
+            </div>
+            <h3 class="text-gray-600 text-sm font-medium">Today</h3>
+            <p class="text-gray-400 text-xs mt-2">Last 24 hours</p>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Emails by Category</h3>
+            <canvas id="categoryChart" height="250"></canvas>
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm p-6">
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Weekly Trend</h3>
+            <canvas id="trendChart" height="250"></canvas>
+        </div>
+    </div>
+
+    <!-- Recent Emails -->
+    <div class="bg-white rounded-xl shadow-sm p-6">
+        <div class="flex items-center justify-between mb-6">
+            <h3 class="text-lg font-semibold text-gray-800">Recent Emails</h3>
+            <a href="{{ url_for('main.emails') }}" class="text-blue-600 hover:text-blue-700 text-sm">View all →</a>
+        </div>
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="border-b border-gray-200">
+                    <tr class="text-left text-gray-500 text-sm">
+                        <th class="pb-3">Sender</th>
+                        <th class="pb-3">Subject</th>
+                        <th class="pb-3">Category</th>
+                        <th class="pb-3">Processed</th>
+                    </tr>
+                </thead>
+                <tbody id="recentEmailsTable">
+                    <tr><td colspan="4" class="text-center py-8 text-gray-400">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+    async function loadStats() {
+        const response = await fetch('/api/stats');
+        const data = await response.json();
+        document.getElementById('totalEmails').textContent = data.total_emails;
+        document.getElementById('uniqueSenders').textContent = data.unique_senders;
+        document.getElementById('last7Days').textContent = data.last_7_days;
+        document.getElementById('todayCount').textContent = data.today_count;
+    }
+
+    async function loadCategoryChart() {
+        const response = await fetch('/api/categories');
+        const data = await response.json();
+        
+        const ctx = document.getElementById('categoryChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(data),
+                datasets: [{
+                    data: Object.values(data),
+                    backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#6b7280'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    async function loadRecentEmails() {
+        const response = await fetch('/api/emails?per_page=5');
+        const data = await response.json();
+        
+        const tbody = document.getElementById('recentEmailsTable');
+        if (data.emails.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-gray-400">No emails found</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = data.emails.map(email => `
+            <tr class="border-b border-gray-100 hover:bg-gray-50 transition">
+                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.sender.substring(0, 40))}</td>
+                <td class="py-3 text-sm text-gray-700">${escapeHtml(email.subject.substring(0, 50))}</td>
+                <td class="py-3"><span class="px-2 py-1 text-xs rounded-full ${getCategoryColor(email.category)}">${email.category || 'OTHER'}</span></td>
+                <td class="py-3 text-sm text-gray-500">${new Date(email.processed_at).toLocaleDateString()}</td>
+            </tr>
+        `).join('');
+    }
+
+    function getCategoryColor(category) {
+        const colors = {
+            'SECURITY': 'bg-red-100 text-red-700',
+            'PROMOTION': 'bg-orange-100 text-orange-700',
+            'PERSONAL': 'bg-green-100 text-green-700',
+            'BUSINESS': 'bg-blue-100 text-blue-700',
+            'SOCIAL': 'bg-purple-100 text-purple-700',
+            'OTHER': 'bg-gray-100 text-gray-700'
+        };
+        return colors[category] || colors['OTHER'];
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    loadStats();
+    loadCategoryChart();
+    loadRecentEmails();
+</script>
+{% endblock %}
