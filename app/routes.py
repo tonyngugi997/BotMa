@@ -83,13 +83,35 @@ def logout():
 @login_required
 def get_stats():
     conn = get_db()
-    total = conn.execute('SELECT COUNT(*) FROM processed_emails').fetchone()[0]
-    senders = conn.execute('SELECT COUNT(DISTINCT sender) FROM processed_emails').fetchone()[0]
+    
+    active_account_id = session.get('active_account_id')
+    
+    if not active_account_id:
+        first = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (current_user.id,)).fetchone()
+        if first:
+            active_account_id = first[0]
+            session['active_account_id'] = active_account_id
+        else:
+            # No accounts at all
+            return jsonify({
+                'total_emails': 0,
+                'unique_senders': 0,
+                'last_7_days': 0,
+                'today_count': 0
+            })
+    
+    total = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE account_id = ?', (active_account_id,)).fetchone()[0]
+    
+    senders = conn.execute('SELECT COUNT(DISTINCT sender) FROM processed_emails WHERE account_id = ?', (active_account_id,)).fetchone()[0]
+    
     week_ago = (datetime.now() - timedelta(days=7)).isoformat()
-    last_week = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE processed_at > ?', (week_ago,)).fetchone()[0]
+    last_week = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE account_id = ? AND processed_at > ?', (active_account_id, week_ago)).fetchone()[0]
+    
     today = datetime.now().date().isoformat()
-    today_count = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE DATE(processed_at) = ?', (today,)).fetchone()[0]
+    today_count = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE account_id = ? AND DATE(processed_at) = ?', (active_account_id, today)).fetchone()[0]
+    
     conn.close()
+    
     return jsonify({
         'total_emails': total,
         'unique_senders': senders,
