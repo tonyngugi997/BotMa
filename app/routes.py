@@ -241,6 +241,18 @@ def analytics():
 def get_analytics():
     range_param = request.args.get('range', '30d')
     conn = get_db()
+    
+    # Get active account
+    active_account_id = session.get('active_account_id')
+    if not active_account_id:
+        first = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (current_user.id,)).fetchone()
+        if first:
+            active_account_id = first[0]
+            session['active_account_id'] = active_account_id
+        else:
+            conn.close()
+            return jsonify({'daily': [], 'categories': {}, 'top_senders': [], 'hourly': [], 'total_emails': 0, 'unique_senders': 0, 'daily_avg': 0})
+    
     if range_param == '7d':
         start_date = (datetime.now() - timedelta(days=7)).isoformat()
     elif range_param == '30d':
@@ -249,39 +261,46 @@ def get_analytics():
         start_date = (datetime.now() - timedelta(days=90)).isoformat()
     else:
         start_date = '2020-01-01'
+    
     daily = conn.execute('''
         SELECT DATE(processed_at) as date, COUNT(*) as count
         FROM processed_emails
-        WHERE processed_at > ?
+        WHERE account_id = ? AND processed_at > ?
         GROUP BY DATE(processed_at)
         ORDER BY date DESC
         LIMIT 30
-    ''', (start_date,)).fetchall()
+    ''', (active_account_id, start_date)).fetchall()
+    
     categories = conn.execute('''
         SELECT COALESCE(category, 'OTHER') as category, COUNT(*) as count
         FROM processed_emails
-        WHERE processed_at > ?
+        WHERE account_id = ? AND processed_at > ?
         GROUP BY category
-    ''', (start_date,)).fetchall()
+    ''', (active_account_id, start_date)).fetchall()
+    
     top_senders = conn.execute('''
         SELECT sender, COUNT(*) as count
         FROM processed_emails
-        WHERE processed_at > ?
+        WHERE account_id = ? AND processed_at > ?
         GROUP BY sender
         ORDER BY count DESC
         LIMIT 10
-    ''', (start_date,)).fetchall()
+    ''', (active_account_id, start_date)).fetchall()
+    
     hourly = conn.execute('''
         SELECT CAST(strftime('%H', processed_at) AS INTEGER) as hour, COUNT(*) as count
         FROM processed_emails
-        WHERE processed_at > ?
+        WHERE account_id = ? AND processed_at > ?
         GROUP BY hour
         ORDER BY hour
-    ''', (start_date,)).fetchall()
-    total_emails = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE processed_at > ?', (start_date,)).fetchone()[0]
-    unique_senders = conn.execute('SELECT COUNT(DISTINCT sender) FROM processed_emails WHERE processed_at > ?', (start_date,)).fetchone()[0]
+    ''', (active_account_id, start_date)).fetchall()
+    
+    total_emails = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE account_id = ? AND processed_at > ?', (active_account_id, start_date)).fetchone()[0]
+    unique_senders = conn.execute('SELECT COUNT(DISTINCT sender) FROM processed_emails WHERE account_id = ? AND processed_at > ?', (active_account_id, start_date)).fetchone()[0]
     daily_avg = int(round(total_emails / max(len(daily), 1)))
+    
     conn.close()
+    
     return jsonify({
         'daily': [{'date': row[0], 'count': row[1]} for row in daily][::-1],
         'categories': {row[0]: row[1] for row in categories},
@@ -321,13 +340,25 @@ def emails_page():
 @bp.route('/api/weekly-trend')
 @login_required
 def get_weekly_trend():
-    """Get last 7 days email counts for the trend chart"""
     conn = get_db()
+    
+    # Get active account
+    active_account_id = session.get('active_account_id')
+    if not active_account_id:
+        first = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (current_user.id,)).fetchone()
+        if first:
+            active_account_id = first[0]
+            session['active_account_id'] = active_account_id
+        else:
+            conn.close()
+            return jsonify([0, 0, 0, 0, 0, 0, 0])
+    
     result = []
     for i in range(6, -1, -1):
         date = (datetime.now() - timedelta(days=i)).date()
-        count = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE DATE(processed_at) = ?', (date.isoformat(),)).fetchone()[0]
+        count = conn.execute('SELECT COUNT(*) FROM processed_emails WHERE account_id = ? AND DATE(processed_at) = ?', (active_account_id, date.isoformat())).fetchone()[0]
         result.append(count)
+    
     conn.close()
     return jsonify(result)
 
