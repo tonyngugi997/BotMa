@@ -153,6 +153,9 @@ def get_categories():
 @bp.route('/api/emails')
 @login_required
 def get_emails():
+    first_account = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (user.id,)).fetchone()
+    if first_account:
+        session['active_account_id'] = first_account[0]
     page = request.args.get('page', 1, type=int)
     per_page = request.args.get('per_page', 20, type=int)
     category = request.args.get('category', '')
