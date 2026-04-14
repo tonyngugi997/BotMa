@@ -123,14 +123,32 @@ def get_stats():
 @login_required
 def get_categories():
     conn = get_db()
-    columns = conn.execute("PRAGMA table_info(processed_emails)").fetchall()
-    has_category = any(col[1] == 'category' for col in columns)
-    if not has_category:
-        conn.close()
-        return {'SECURITY': 0, 'PROMOTION': 0, 'PERSONAL': 0, 'BUSINESS': 0, 'SOCIAL': 0, 'OTHER': 0}
-    rows = conn.execute('SELECT category, COUNT(*) as count FROM processed_emails GROUP BY category').fetchall()
+    
+    # Get active account
+    active_account_id = session.get('active_account_id')
+    if not active_account_id:
+        first = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (current_user.id,)).fetchone()
+        if first:
+            active_account_id = first[0]
+            session['active_account_id'] = active_account_id
+        else:
+            conn.close()
+            return {'SECURITY': 0, 'PROMOTION': 0, 'PERSONAL': 0, 'BUSINESS': 0, 'SOCIAL': 0, 'OTHER': 0}
+    
+    rows = conn.execute('''
+        SELECT COALESCE(category, 'OTHER') as category, COUNT(*) as count 
+        FROM processed_emails 
+        WHERE account_id = ?
+        GROUP BY category
+    ''', (active_account_id,)).fetchall()
+    
     conn.close()
-    return {row['category']: row['count'] for row in rows}
+    
+    result = {'SECURITY': 0, 'PROMOTION': 0, 'PERSONAL': 0, 'BUSINESS': 0, 'SOCIAL': 0, 'OTHER': 0}
+    for row in rows:
+        result[row[0]] = row[1]
+    
+    return result
 
 @bp.route('/api/emails')
 @login_required
