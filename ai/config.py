@@ -1,4 +1,3 @@
- 
 import os
 from dotenv import load_dotenv
 
@@ -7,24 +6,21 @@ load_dotenv()
 class AIConfig:
     """Central configuration for AI features"""
     
-    # Gemini API settings
-    GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
+    # Groq API settings
+    GROQ_API_KEY = os.getenv('GROQ_API_KEY')
     
-    GEMINI_MODEL = os.getenv('GEMINI_MODEL', 'gemini-1.5-flash')
+    GROQ_MODEL = os.getenv('GROQ_MODEL', 'llama-3.1-8b-instant')
     
+    # Feature flags
     ENABLE_AI_CATEGORIZER = True
-    ENABLE_AI_PRIORITY = False  
-    ENABLE_AI_SUMMARY = False     
-    
-    MAX_REQUESTS_PER_MINUTE = 15
+    AI_PROVIDER = os.getenv('AI_PROVIDER', 'groq')
     
     @classmethod
     def validate(cls):
-        """Check if AI is properly configured"""
-        if not cls.GEMINI_API_KEY:
-            print("⚠️ GEMINI_API_KEY not found in .env file")
+        if not cls.GROQ_API_KEY:
+            print("WARNING: GROQ_API_KEY not found in .env file")
             return False
-        print(f"✅ AI Configuration valid. Using model: {cls.GEMINI_MODEL}")
+        print(f"AI Configuration valid. Using Groq model: {cls.GROQ_MODEL}")
         return True
 
 ai_config = AIConfig()
