@@ -79,19 +79,9 @@ for email_id_bytes in message_ids[0].split():
     sender = email_message['From']
     body = clean_email_body(email_message)
     
-    # AI CATEGORIZATION WITH FALLBACK
-    if ai_config.ENABLE_AI_CATEGORIZER and ai_service.categorizer.is_available():
-        try:
-            category = ai_service.categorize_email(subject, sender, body)
-            logger.info(f"AI Category: {category}")
-        except Exception as e:
-            logger.error(f"AI failed, using fallback: {e}")
-            category = categorize(subject, sender, body)
-            logger.info(f"Fallback Category: {category}")
-    else:
-        category = categorize(subject, sender, body)
-        logger.info(f"Rule-based Category: {category}")
-   
+    category = ai_service.categorize_email(subject, sender, body)
+    logger.info(f"AI Category: {category}")
+    
     saved_files = save_attachments(email_message, email_id, sender=sender)
     if saved_files:
         logger.info(f"Saved {len(saved_files)} attachment(s): {saved_files}")
