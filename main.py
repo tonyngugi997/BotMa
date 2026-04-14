@@ -2,11 +2,13 @@ import imaplib
 import os
 from dotenv import load_dotenv
 import email
+from ai.service import ai_service
+from ai.config import ai_config
 
 from cleaning import decode_subject, clean_email_body, save_attachments
 from storage import init_database, save_email, is_email_processed
 from gmail_client import GmailClient
-from categorizer import categorize
+from categorizer import categorize  
 
 from logger import get_logger  
 from priority_scorer import calculate_priority_score
@@ -20,6 +22,11 @@ init_database()
 EMAIL = os.getenv('EMAIL')
 APP_PASSWORD = os.getenv('APP_PASSWORD')
 IMAP_SERVER = os.getenv('IMAP_SERVER')
+
+if ai_config.ENABLE_AI_CATEGORIZER:
+    logger.info("AI Categorizer ENABLED with Groq")
+else:
+    logger.info("Using rule-based categorizer (AI disabled)")
 
 gmail = GmailClient(EMAIL, APP_PASSWORD, IMAP_SERVER)
 gmail.connect()
@@ -71,18 +78,27 @@ for email_id_bytes in message_ids[0].split():
     subject = email_message['Subject']
     sender = email_message['From']
     body = clean_email_body(email_message)
-    category = categorize(subject, sender, body)
+    
+    # AI CATEGORIZATION WITH FALLBACK
+    if ai_config.ENABLE_AI_CATEGORIZER and ai_service.categorizer.is_available():
+        try:
+            category = ai_service.categorize_email(subject, sender, body)
+            logger.info(f"AI Category: {category}")
+        except Exception as e:
+            logger.error(f"AI failed, using fallback: {e}")
+            category = categorize(subject, sender, body)
+            logger.info(f"Fallback Category: {category}")
+    else:
+        category = categorize(subject, sender, body)
+        logger.info(f"Rule-based Category: {category}")
    
     saved_files = save_attachments(email_message, email_id, sender=sender)
     if saved_files:
         logger.info(f"Saved {len(saved_files)} attachment(s): {saved_files}")
     
-    # CALCULATE PRIORITY SCORE 
     has_attachments = len(saved_files) > 0
     priority_score = calculate_priority_score(subject, sender, body, has_attachments)
     logger.info(f"Priority Score: {priority_score}/100")
-    
-    logger.info(f"Subject: {decode_subject(subject)}")
     
     logger.info(f"Subject: {decode_subject(subject)}")
     logger.info(f"Sender: {sender}")
