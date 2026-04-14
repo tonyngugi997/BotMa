@@ -160,44 +160,68 @@ def get_emails():
     sort = request.args.get('sort', 'desc')
     priority = request.args.get('priority', '')
     offset = (page - 1) * per_page
+    
     conn = get_db()
-    query = 'SELECT * FROM processed_emails WHERE 1=1'
-    params = []
+    
+    # Get active account
+    active_account_id = session.get('active_account_id')
+    if not active_account_id:
+        first = conn.execute('SELECT id FROM email_accounts WHERE user_id = ? LIMIT 1', (current_user.id,)).fetchone()
+        if first:
+            active_account_id = first[0]
+            session['active_account_id'] = active_account_id
+        else:
+            conn.close()
+            return jsonify({'emails': [], 'total': 0, 'page': 1, 'per_page': per_page, 'total_pages': 1})
+    
+    query = 'SELECT * FROM processed_emails WHERE account_id = ?'
+    params = [active_account_id]
+    
     if category:
         query += ' AND category = ?'
         params.append(category)
+    
     if priority == 'high':
         query += ' AND priority_score >= 70'
     elif priority == 'medium':
         query += ' AND priority_score >= 40 AND priority_score < 70'
     elif priority == 'low':
         query += ' AND priority_score < 40'
+    
     if search:
         query += ' AND (sender LIKE ? OR subject LIKE ? OR body_preview LIKE ?)'
         params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
+    
     if priority:
         query += f' ORDER BY priority_score DESC, processed_at {sort} LIMIT ? OFFSET ?'
     else:
         query += f' ORDER BY processed_at {sort} LIMIT ? OFFSET ?'
+    
     params.extend([per_page, offset])
     emails = conn.execute(query, params).fetchall()
-    # Count total
-    count_query = 'SELECT COUNT(*) FROM processed_emails WHERE 1=1'
-    count_params = []
+    
+    # Count query
+    count_query = 'SELECT COUNT(*) FROM processed_emails WHERE account_id = ?'
+    count_params = [active_account_id]
+    
     if category:
         count_query += ' AND category = ?'
         count_params.append(category)
+    
     if priority == 'high':
         count_query += ' AND priority_score >= 70'
     elif priority == 'medium':
         count_query += ' AND priority_score >= 40 AND priority_score < 70'
     elif priority == 'low':
         count_query += ' AND priority_score < 40'
+    
     if search:
         count_query += ' AND (sender LIKE ? OR subject LIKE ? OR body_preview LIKE ?)'
         count_params.extend([f'%{search}%', f'%{search}%', f'%{search}%'])
+    
     total = conn.execute(count_query, count_params).fetchone()[0]
     conn.close()
+    
     return jsonify({
         'emails': [dict(email) for email in emails],
         'total': total,
@@ -205,6 +229,7 @@ def get_emails():
         'per_page': per_page,
         'total_pages': (total + per_page - 1) // per_page if total > 0 else 1
     })
+
 
 @bp.route('/analytics')
 @login_required
